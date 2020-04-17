@@ -35,21 +35,21 @@ const Question = props => {
       />
     </View>
   ) : (
-    <View style={styles.actionButton}>
-      <Button
-        color={colors.activeColor}
-        title="NEXT"
-        onPress={() => {
-          let userAnswer = {
-            ...currQuestion,
-            userAnswer: selectedAnswer
-          };
-          setSelectedAnswer(null);
-          props.onNext(userAnswer);
-        }}
-      />
-    </View>
-  );
+      <View style={styles.actionButton}>
+        <Button
+          color={colors.activeColor}
+          title="NEXT"
+          onPress={() => {
+            let userAnswer = {
+              ...currQuestion,
+              userAnswer: selectedAnswer
+            };
+            setSelectedAnswer(null);
+            props.onNext(userAnswer);
+          }}
+        />
+      </View>
+    );
 
   return (
     <View style={styles.container}>
@@ -60,6 +60,7 @@ const Question = props => {
         {Object.keys(currQuestion.possibleAnswers).map(val => {
           return (
             <Touchable
+              key={val}
               useForeground={true}
               onPress={() => {
                 //alert(selectedAnswer);
@@ -69,7 +70,7 @@ const Question = props => {
               <View style={styles.answerCard}>
                 <Card
                   style={{
-                    backgroundColor: selectedAnswer === val ? "green" : "#fff"
+                    backgroundColor: selectedAnswer === val ? "#ccc" : "#fff"
                   }}
                 >
                   <Text style={styles.answer} key={val}>

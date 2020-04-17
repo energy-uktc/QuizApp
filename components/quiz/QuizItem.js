@@ -8,7 +8,7 @@ import {
   TouchableNativeFeedback,
   Platform,
   Button,
-  Image
+  Image,
 } from "react-native";
 import Card from "../UI/Card";
 import colors from "../../constants/colors";
@@ -16,7 +16,7 @@ import colors from "../../constants/colors";
 const Touchable =
   Platform.OS === "android" ? TouchableNativeFeedback : TouchableOpacity;
 
-const QuizItem = props => {
+const QuizItem = (props) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const timeMessage = props.quiz.timeLimit
     ? (props.quiz.timeLimit.min ? `${props.quiz.timeLimit.min} min.` : "") +
@@ -28,7 +28,7 @@ const QuizItem = props => {
       <View style={styles.mark}>
         <Ionicons
           name={"md-checkmark-circle-outline"}
-          color={"green"}
+          color={colors.greenish}
           size={23}
         />
       </View>
@@ -126,22 +126,22 @@ const QuizItem = props => {
 
 const styles = StyleSheet.create({
   container: {
-    margin: 5
+    margin: 5,
   },
   quizItem: {
     flex: 1,
     padding: 15,
-    backgroundColor: colors.backColor
+    backgroundColor: colors.backColor,
   },
   quizTitle: {
     flex: 15,
     borderWidth: 0,
-    borderColor: "red"
+    borderColor: "red",
   },
   mark: {
     flex: 2,
     alignItems: "flex-end",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   arrowDown: {
     flex: 3,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     // borderWidth: 1,
     // borderColor: "red",
-    width: "100%"
+    width: "100%",
   },
   arrowUp: {
     alignItems: "center",
@@ -157,39 +157,39 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     // borderColor: "red",
     paddingVertical: 5,
-    width: "100%"
+    width: "100%",
   },
 
   title: {
     fontSize: 17,
 
     color: colors.activeColor,
-    fontFamily: "open-sans-bold"
+    fontFamily: "open-sans-bold",
   },
   quizDescription: {
     fontSize: 15,
     fontStyle: "italic",
     color: colors.activeColor,
     fontFamily: "open-sans",
-    padding: 10
+    padding: 10,
     // borderWidth: 1,
     // borderColor: "red"
   },
   dateField: {
     color: "#ccc",
-    fontFamily: "open-sans"
+    fontFamily: "open-sans",
   },
   timeInfo: {
-    flexDirection: "row"
+    flexDirection: "row",
   },
   details: {
-    alignItems: "center"
+    alignItems: "center",
   },
   sampleInfo: {
     //margin: 7,
     flexDirection: "row",
-    justifyContent: "space-between"
-  }
+    justifyContent: "space-between",
+  },
 });
 
 export default QuizItem;

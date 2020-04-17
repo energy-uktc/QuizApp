@@ -5,7 +5,8 @@ import {
   KeyboardAvoidingView,
   StyleSheet,
   Button,
-  Alert
+  Alert,
+  Platform
 } from "react-native";
 import Card from "../../components/UI/Card";
 import Input from "../../components/UI/Input";
@@ -112,15 +113,16 @@ const AuthScreen = props => {
   let passwordInput = null;
 
   return (
-    <KeyboardAvoidingView
+
+    <LinearGradient
       style={styles.screen}
-      behavior="padding"
-      keyboardVerticalOffset={50}
+      //colors={["#D9C9D0", "#D4C7CD", "#EAD1DC"]}
+      colors={[colors.backColor, colors.backColor, colors.backColor]}
     >
-      <LinearGradient
-        style={styles.gradient}
-        //colors={["#D9C9D0", "#D4C7CD", "#EAD1DC"]}
-        colors={[colors.backColor, colors.backColor, colors.backColor]}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS == "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={50}
       >
         <Card style={styles.authContainer}>
           <ScrollView>
@@ -142,7 +144,7 @@ const AuthScreen = props => {
               childRef={ref => {
                 passwordInput = ref;
               }}
-              onSubmitEditing={() => {}}
+              onSubmitEditing={() => { }}
               secureTextEntry={true}
               autoCapitalize="none"
               autoCorrect={false}
@@ -158,7 +160,7 @@ const AuthScreen = props => {
                 childRef={ref => {
                   passwordInput = ref;
                 }}
-                onSubmitEditing={() => {}}
+                onSubmitEditing={() => { }}
                 secureTextEntry={true}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -174,12 +176,12 @@ const AuthScreen = props => {
               {isLoading ? (
                 <LoadingControl />
               ) : (
-                <Button
-                  title={isSignup ? "Sign Up" : "Login"}
-                  color={colors.primary}
-                  onPress={authHandler}
-                />
-              )}
+                  <Button
+                    title={isSignup ? "Sign Up" : "Login"}
+                    color={colors.primary}
+                    onPress={authHandler}
+                  />
+                )}
             </View>
             <View style={styles.buttonContainer}>
               <Button
@@ -207,8 +209,9 @@ const AuthScreen = props => {
             </View>
           </ScrollView>
         </Card>
-      </LinearGradient>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
+
   );
 };
 
@@ -220,7 +223,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1
   },
-  gradient: {
+  container: {
     width: "100%",
     height: "100%",
     justifyContent: "center",

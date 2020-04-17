@@ -9,10 +9,11 @@ import {
   Dimensions,
   Modal,
   ScrollView,
-  Alert
+  Alert,
 } from "react-native";
 import colors from "../../constants/colors";
 import Question from "./Question";
+import QuizResult from "./QuizResult";
 
 const START_QUIZ = "START_QUIZ";
 const NEXT_QUESTION = "NEXT_QUESTION";
@@ -34,7 +35,7 @@ const quizReducer = (state, action) => {
         userQuestions: userQuestions,
         isQuizStarted: true,
         isQuizFinished: false,
-        isLastQuestion: quizQuestions.length === 0
+        isLastQuestion: quizQuestions.length === 0,
       };
     case NEXT_QUESTION:
       userQuestions = state.userQuestions;
@@ -47,7 +48,7 @@ const quizReducer = (state, action) => {
         userQuestions: userQuestions,
         currQuestion: currQuestion,
         isQuizFinished: !currQuestion,
-        isLastQuestion: quizQuestions.length === 0
+        isLastQuestion: quizQuestions.length === 0,
       };
     case SUBMIT_QUIZ: {
       userQuestions = state.userQuestions;
@@ -58,17 +59,17 @@ const quizReducer = (state, action) => {
         currQuestion: null,
         isQuizFinished: true,
         isLastQuestion: false,
-        isQuizStarted: false
+        isQuizStarted: false,
       };
     }
   }
   return state;
 };
 
-const QuizDetails = props => {
-  const questions = useSelector(state =>
+const QuizDetails = (props) => {
+  const questions = useSelector((state) =>
     state.question.questions
-      .filter(q => q.quizId === props.quiz.id)
+      .filter((q) => q.quizId === props.quiz.id)
       .sort((q1, q2) => {
         if (q1.number < q2.number) return 1;
         if (q1.number > q2.number) return -1;
@@ -82,7 +83,7 @@ const QuizDetails = props => {
     userQuestions: [],
     isQuizStarted: false,
     isQuizFinished: false,
-    isLastQuestion: false
+    isLastQuestion: false,
   });
 
   const dim = Dimensions.get("window");
@@ -98,12 +99,16 @@ const QuizDetails = props => {
     dispatchQuizState({ type: START_QUIZ, quizQuestions: questions });
   };
 
-  const onNextQuestionHandler = question => {
+  const onNextQuestionHandler = (question) => {
     dispatchQuizState({ type: NEXT_QUESTION, question: question });
   };
 
-  const onSubmitHandler = question => {
+  const onSubmitHandler = (question) => {
     dispatchQuizState({ type: SUBMIT_QUIZ, question: question });
+  };
+
+  const endQuizHandler = () => {
+    props.onGoBack();
   };
 
   let content = (
@@ -113,7 +118,7 @@ const QuizDetails = props => {
         source={{
           uri: props.quiz.imageUrl,
           height: dim.width / 2,
-          width: dim.height / 2
+          width: dim.height / 2,
         }}
       />
       <View style={styles.infoContainer}>
@@ -141,14 +146,13 @@ const QuizDetails = props => {
     );
   }
   if (quizState.isQuizFinished) {
-    Alert.alert("Quiz Results", JSON.stringify(quizState.userQuestions), [
-      {
-        text: "YES",
-        onPress: () => {
-          console.log();
-        }
-      }
-    ]);
+    content = (
+      <QuizResult
+        userQuestions={quizState.userQuestions}
+        quiz={props.quiz}
+        onExit={endQuizHandler}
+      />
+    );
   }
 
   return (
@@ -180,10 +184,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     // borderWidth: 1,
     // borderColor: "red",
-    backgroundColor: colors.backColor
+    backgroundColor: colors.backColor,
   },
   scrollViewContent: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   title: {
     fontFamily: "open-sans-bold",
@@ -192,35 +196,35 @@ const styles = StyleSheet.create({
     padding: 15,
     textShadowColor: colors.activeColor,
     textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 1
+    textShadowRadius: 1,
   },
   titleContainer: {
     width: "100%",
     backgroundColor: colors.primary,
     justifyContent: "flex-start",
-    alignItems: "center"
+    alignItems: "center",
   },
   info: {
     fontFamily: "open-sans",
     fontSize: 16,
     color: colors.activeColor,
     padding: 15,
-    textAlignVertical: "center"
+    textAlignVertical: "center",
   },
   infoContainer: {
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   image: {
     resizeMode: "contain",
-    margin: 15
+    margin: 15,
     // borderWidth: 1,
     // borderColor: "blue"
   },
   startButton: {
     width: Dimensions.get("window").width / 4,
-    margin: 20
-  }
+    margin: 20,
+  },
 });
 
 export default QuizDetails;
