@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer } from "react";
+import React, { useEffect, useReducer } from "react";
 import { useSelector } from "react-redux";
 import {
   View,
@@ -9,82 +9,131 @@ import {
   Dimensions,
   Modal,
   ScrollView,
-  Alert,
 } from "react-native";
 import colors from "../../constants/colors";
-import Question from "./Question";
+import Question from "../../components/quiz/question/Question";
 import QuizResult from "./QuizResult";
+import { QUIZ_STATUS } from "../../utils/quizUtils";
 
+const INIT = "INIT";
+const VIEW_RESULTS = "VIEW_RESULTS";
 const START_QUIZ = "START_QUIZ";
 const NEXT_QUESTION = "NEXT_QUESTION";
+const PREVIOUS_QUESTION = "PREVIOUS_QUESTION";
 const SUBMIT_QUIZ = "SUBMIT_QUIZ";
+const REVIEW_QUIZ = "REVIEW_QUIZ";
+const END_REVIEW_QUIZ = "END_REVIEW_QUIZ";
+const FINALIZE = "FINALIZE";
 
 const quizReducer = (state, action) => {
-  let userQuestions = [];
-  let quizQuestions = [];
+  let position = state.position;
+  let quizQuestions = state.quizQuestions;
   let currQuestion = null;
   switch (action.type) {
-    case START_QUIZ:
-      userQuestions = [];
-      quizQuestions = action.quizQuestions;
-      currQuestion = quizQuestions.pop();
+    case INIT:
       return {
         ...state,
-        quizQuestions: quizQuestions,
+        quizStatus: QUIZ_STATUS.INIT,
+      };
+    case START_QUIZ:
+      currQuestion = quizQuestions[position];
+      return {
+        ...state,
         currQuestion: currQuestion,
-        userQuestions: userQuestions,
-        isQuizStarted: true,
-        isQuizFinished: false,
-        isLastQuestion: quizQuestions.length === 0,
+        position: 0,
+        quizStatus: QUIZ_STATUS.STARTED,
       };
     case NEXT_QUESTION:
-      userQuestions = state.userQuestions;
-      userQuestions.push(action.question);
-      quizQuestions = state.quizQuestions;
-      currQuestion = quizQuestions.pop();
+      quizQuestions[position] = action.question;
+      position++;
+      currQuestion = quizQuestions[position];
       return {
         ...state,
         quizQuestions: quizQuestions,
-        userQuestions: userQuestions,
+        position: position,
         currQuestion: currQuestion,
-        isQuizFinished: !currQuestion,
-        isLastQuestion: quizQuestions.length === 0,
       };
-    case SUBMIT_QUIZ: {
-      userQuestions = state.userQuestions;
-      userQuestions.push(action.question);
+    case PREVIOUS_QUESTION:
+      quizQuestions[position] = action.question;
+      position--;
+      currQuestion = quizQuestions[position];
       return {
         ...state,
-        userQuestions: userQuestions,
-        currQuestion: null,
-        isQuizFinished: true,
-        isLastQuestion: false,
-        isQuizStarted: false,
+        quizQuestions: quizQuestions,
+        position: position,
+        currQuestion: currQuestion,
+      };
+    case SUBMIT_QUIZ: {
+      quizQuestions[position] = action.question;
+      return {
+        ...state,
+        quizQuestions: quizQuestions,
+        quizStatus: QUIZ_STATUS.FINISHED,
+      };
+    }
+    case VIEW_RESULTS: {
+      return {
+        ...state,
+        quizStatus: QUIZ_STATUS.FINISHED,
+      };
+    }
+    case REVIEW_QUIZ: {
+      position = 0;
+      currQuestion = quizQuestions[position];
+      return {
+        ...state,
+        position: 0,
+        currQuestion: currQuestion,
+        quizStatus: QUIZ_STATUS.REVIEW,
+      };
+    }
+    case END_REVIEW_QUIZ: {
+      return {
+        ...state,
+        quizStatus: QUIZ_STATUS.FINISHED,
+      };
+    }
+    case FINALIZE: {
+      return {
+        ...state,
+        quizStatus: QUIZ_STATUS.INIT,
       };
     }
   }
   return state;
 };
 
-const QuizDetails = (props) => {
-  const questions = useSelector((state) =>
-    state.question.questions
+const Quiz = (props) => {
+  const questions = useSelector((state) => {
+    console.log(props.quiz);
+    return state.question.questions
       .filter((q) => q.quizId === props.quiz.id)
       .sort((q1, q2) => {
-        if (q1.number < q2.number) return 1;
-        if (q1.number > q2.number) return -1;
+        if (q1.number < q2.number) return -1;
+        if (q1.number > q2.number) return 1;
         return 0;
-      })
-  );
+      });
+  });
 
   const [quizState, dispatchQuizState] = useReducer(quizReducer, {
     quizQuestions: questions,
     currQuestion: null,
-    userQuestions: [],
-    isQuizStarted: false,
-    isQuizFinished: false,
-    isLastQuestion: false,
+    position: 0,
+    quizStatus: QUIZ_STATUS.NONE,
   });
+
+  useEffect(() => {
+    switch (props.requestedState) {
+      case QUIZ_STATUS.INIT:
+        dispatchQuizState({ type: INIT });
+        break;
+      case QUIZ_STATUS.FINISHED:
+        dispatchQuizState({ type: VIEW_RESULTS });
+        break;
+      default:
+        dispatchQuizState({ type: INIT });
+    }
+  }, [props.requestedState]);
 
   const dim = Dimensions.get("window");
   const timeMessage = props.quiz.timeLimit
@@ -96,11 +145,14 @@ const QuizDetails = (props) => {
     //initializeQuestions();
     if (!quizState.quizQuestions) return;
     if (!quizState.quizQuestions.length === 0) return;
-    dispatchQuizState({ type: START_QUIZ, quizQuestions: questions });
+    dispatchQuizState({ type: START_QUIZ });
   };
 
   const onNextQuestionHandler = (question) => {
     dispatchQuizState({ type: NEXT_QUESTION, question: question });
+  };
+  const onPreviousQuestionHandler = (question) => {
+    dispatchQuizState({ type: PREVIOUS_QUESTION, question: question });
   };
 
   const onSubmitHandler = (question) => {
@@ -108,8 +160,25 @@ const QuizDetails = (props) => {
   };
 
   const endQuizHandler = () => {
+    dispatchQuizState({ type: FINALIZE });
     props.onGoBack();
   };
+
+  const reviewQuestionsHandler = () => {
+    dispatchQuizState({ type: REVIEW_QUIZ });
+  };
+
+  const onQuestionExitHandler = () => {
+    if (quizState.quizStatus === QUIZ_STATUS.REVIEW) {
+      dispatchQuizState({ type: END_REVIEW_QUIZ });
+      return;
+    }
+    endQuizHandler();
+  };
+
+  if (quizState.quizStatus === QUIZ_STATUS.NONE) {
+    return null;
+  }
 
   let content = (
     <View style={styles.container}>
@@ -135,35 +204,41 @@ const QuizDetails = (props) => {
     </View>
   );
 
-  if (quizState.isQuizStarted) {
+  if (
+    quizState.quizStatus == QUIZ_STATUS.STARTED ||
+    quizState.quizStatus == QUIZ_STATUS.REVIEW
+  ) {
     content = (
       <Question
         question={quizState.currQuestion}
+        isLast={quizState.quizQuestions.length === quizState.position + 1}
+        isFirst={quizState.position === 0}
+        reviewMode={quizState.quizStatus === QUIZ_STATUS.REVIEW}
         onNext={onNextQuestionHandler}
-        isLast={quizState.isLastQuestion}
+        onPrevious={onPreviousQuestionHandler}
         onSubmit={onSubmitHandler}
+        onExit={onQuestionExitHandler}
       />
     );
   }
-  if (quizState.isQuizFinished) {
+  if (quizState.quizStatus == QUIZ_STATUS.FINISHED) {
     content = (
       <QuizResult
-        userQuestions={quizState.userQuestions}
+        userQuestions={quizState.quizQuestions}
         quiz={props.quiz}
         onExit={endQuizHandler}
+        onReview={reviewQuestionsHandler}
       />
     );
   }
 
   return (
     <Modal
-      // style={styles.container}
       transparent={false}
       animationType={"slide"}
       onRequestClose={() => {
         if (!quizState.isQuizStarted) props.onGoBack();
       }}
-      //presentationStyle={"fullScreen"}
     >
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.container}>
@@ -182,8 +257,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "center",
-    // borderWidth: 1,
-    // borderColor: "red",
     backgroundColor: colors.backColor,
   },
   scrollViewContent: {
@@ -218,8 +291,6 @@ const styles = StyleSheet.create({
   image: {
     resizeMode: "contain",
     margin: 15,
-    // borderWidth: 1,
-    // borderColor: "blue"
   },
   startButton: {
     width: Dimensions.get("window").width / 4,
@@ -227,4 +298,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default QuizDetails;
+export default Quiz;

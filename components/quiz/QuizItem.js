@@ -95,9 +95,7 @@ const QuizItem = (props) => {
                 <Button
                   color={colors.activeColor}
                   title="Your Result"
-                  onPress={() => {
-                    console.log("test");
-                  }}
+                  onPress={() => props.onViewResults(props.quiz)}
                 />
               ) : (
                 <Button

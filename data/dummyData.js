@@ -188,9 +188,21 @@ question.setCorrectAnswer(1);
 QUESTIONS.push(question);
 
 ///
-question = new SingleChoiceQuestion(
+question = new OpenQuestion(
   "q4",
   4,
+  "Which keyword is used in method declaration to allow for it to be overridden in a derived class?",
+  3,
+  "q1"
+);
+//question.setCorrectAnswer("virtual");
+question.setCorrectAnswer("virtual");
+QUESTIONS.push(question);
+
+///
+question = new SingleChoiceQuestion(
+  "q5",
+  5,
   "Which of the following is not true about abstract classes?",
   2,
   "q1"

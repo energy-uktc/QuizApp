@@ -1,52 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Button } from "react-native";
 import QuizList from "./QuizList";
-import QuizDetails from "./QuizDetails";
+import Quiz from "./Quiz";
+import { QUIZ_STATUS } from "../../utils/quizUtils";
 
-export default HomeScreen = props => {
-  const [addingQuestion, setAddingQuestion] = useState(false);
-  const [takeQuiz, setTakeQuiz] = useState(null);
-  // useEffect(() => {
-  //   const unsubscribe = props.navigation.addListener("tabPress", e => {
-  //     // Prevent default behavior
-  //     console.log(e);
-  //     e.preventDefault();
-  //     alert("Default behavior prevented");
-  //     // Do something manually
-  //     // ...
-  //   });
+export default HomeScreen = (props) => {
+  const [quiz, setQuiz] = useState(null);
+  const [requestedStatus, setRequestedStatus] = useState(QUIZ_STATUS.INIT);
 
-  //   return unsubscribe;
-  // }, [props.navigation]);
-  // console.log("=========================================");
-  // console.log(props.route);
-  const AddQuizHandler = () => {
-    setAddingQuestion(true);
-  };
-  const CancelAddQuizHandler = () => {
-    setAddingQuestion(false);
-  };
-
-  const TakeQuizHandler = quiz => {
-    setTakeQuiz(quiz);
+  const TakeQuizHandler = (quiz) => {
+    setQuiz(quiz);
+    setRequestedStatus(QUIZ_STATUS.INIT);
   };
   const GoBackFromQuizDetailsHandler = () => {
-    setTakeQuiz(null);
+    setQuiz(null);
   };
-  const BeginQuizHandler = quiz => {};
+
+  const ReviewQuizHandler = (quiz) => {
+    setQuiz(quiz);
+    setRequestedStatus(QUIZ_STATUS.FINISHED);
+  };
 
   let content = (
-    <QuizList
-      onAddQuiz={AddQuizHandler}
-      onCancelAddQuiz={CancelAddQuizHandler}
-      onTakeQuiz={TakeQuizHandler}
-    />
+    <QuizList onTakeQuiz={TakeQuizHandler} onViewResults={ReviewQuizHandler} />
   );
-  if (takeQuiz) {
+  if (quiz) {
     content = (
-      <QuizDetails
-        quiz={takeQuiz}
-        onBeginQuiz={BeginQuizHandler}
+      <Quiz
+        requestedState={requestedStatus}
+        quiz={quiz}
         onGoBack={GoBackFromQuizDetailsHandler}
       />
     );
@@ -58,6 +40,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
-    justifyContent: "center"
-  }
+    justifyContent: "center",
+  },
 });

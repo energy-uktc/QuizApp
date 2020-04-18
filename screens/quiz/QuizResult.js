@@ -9,40 +9,48 @@ import {
 } from "react-native";
 import colors from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
+import * as quizUtils from "../../utils/quizUtils";
 
 const QuizResult = (props) => {
   const dim = Dimensions.get("window");
-  let totalPoints = 0;
-  let userPoints = 0;
-  props.userQuestions.forEach((q) => {
-    userPoints += q.possibleAnswers[q.userAnswer].truthy ? q.points : 0;
-    totalPoints += q.points;
-  });
+  console.log(props.userQuestions);
+  let totalPoints = quizUtils.calculateQuizTotalPoints(props.userQuestions);
+  let userPoints = quizUtils.calculateQuizEarnedPoints(props.userQuestions);
   const minimumPoints = (props.quiz.minimumPointsPrc / 100) * totalPoints;
-  const score = Math.round((userPoints / totalPoints) * 10000, 2) / 100;
-  const passed = !props.quiz.minimumPointsPrc || minimumPoints < userPoints;
-
+  let score = 100;
+  if (totalPoints) {
+    score = Math.round((userPoints / totalPoints) * 10000, 2) / 100;
+  }
+  const passed = !props.quiz.minimumPointsPrc || minimumPoints <= userPoints;
+  const message = passed
+    ? "Congratulations! You passed the test!"
+    : "Sorry ! You didn't pass the test!";
   const iconName = passed
     ? "md-checkmark-circle-outline"
     : "md-close-circle-outline";
   return (
     <View style={styles.screen}>
-      <Image
-        style={styles.image}
-        source={{
-          uri: props.quiz.imageUrl,
-          height: dim.width / 2,
-          width: dim.height / 2,
-        }}
-      />
-      <Text style={styles.successText}>
-        Congratulations! You passed the test!
-      </Text>
-      <Ionicons
-        name={iconName}
-        color={passed ? colors.greenish : colors.primary}
-        size={50}
-      />
+      <View style={{ alignItems: "center" }}>
+        <Image
+          style={styles.image}
+          source={{
+            uri: props.quiz.imageUrl,
+            height: dim.width / 2,
+            width: dim.height / 2,
+          }}
+        />
+        <Text style={passed ? styles.successText : styles.failedText}>
+          {message}
+        </Text>
+        <Text style={passed ? styles.successText : styles.failedText}>
+          {score}%
+        </Text>
+        <Ionicons
+          name={iconName}
+          color={passed ? colors.greenish : colors.primary}
+          size={50}
+        />
+      </View>
       <View>
         <Text style={styles.text}>Total Points: {totalPoints}</Text>
         <Text style={styles.text}>Your Points: {userPoints}</Text>
@@ -53,13 +61,13 @@ const QuizResult = (props) => {
       </View>
       <View style={styles.buttonsContainer}>
         <View style={styles.button}>
-          <Button
-            title="Review Answers"
-            color={colors.activeColor}
-            onPress={() => {
-              alert("Review Answers");
-            }}
-          />
+          {props.userQuestions.length > 0 && (
+            <Button
+              title="Review Answers"
+              color={colors.activeColor}
+              onPress={props.onReview}
+            />
+          )}
         </View>
         <View style={styles.button}>
           <Button
@@ -102,7 +110,13 @@ const styles = StyleSheet.create({
     padding: 5,
     fontSize: 19,
     fontFamily: "open-sans-bold",
-    color: colors.activeColor,
+    color: colors.greenish,
+  },
+  failedText: {
+    padding: 5,
+    fontSize: 19,
+    fontFamily: "open-sans-bold",
+    color: colors.primary,
   },
 });
 

@@ -1,6 +1,6 @@
 export const QUESTION_TYPE = {
   OPEN_QUESTION: "OPEN_QUESTION",
-  SINGLE_CHOICE: "SINGLE_CHOICE"
+  SINGLE_CHOICE: "SINGLE_CHOICE",
 };
 
 class Question {
@@ -15,7 +15,7 @@ class Question {
 
 export class OpenQuestion extends Question {
   constructor(id, number, question, points, quizId) {
-    super(id, number, question, type, points, quizId);
+    super(id, number, question, points, quizId);
     this.type = QUESTION_TYPE.OPEN_QUESTION;
   }
   setCorrectAnswer(correctAnswer) {
@@ -34,8 +34,8 @@ export class SingleChoiceQuestion extends Question {
       ...this.possibleAnswers,
       [id]: {
         answer: answer,
-        truthy: false
-      }
+        truthy: false,
+      },
     };
   }
 

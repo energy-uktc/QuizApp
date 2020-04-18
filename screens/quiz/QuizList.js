@@ -49,23 +49,10 @@ const QuizList = (props) => {
             showTimeLimit={true}
             isTaken={(item.passed ?? null) === null ? false : true}
             onTakeQuiz={props.onTakeQuiz}
+            onViewResults={props.onViewResults}
           />
         )}
       />
-      {/* <Button
-        title="Add Quiz"
-        onPress={() => {
-          const quiz = new Quiz(
-            Date.now().toString(),
-            "Test Quiz",
-            "",
-            "My test quiz",
-            null,
-            new Date(2019, 6, 1)
-          );
-          dispatch(quizActions.addQuiz(quiz));
-        }}
-      /> */}
     </View>
   );
 };
