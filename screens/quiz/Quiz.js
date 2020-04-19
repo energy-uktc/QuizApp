@@ -22,7 +22,6 @@ const NEXT_QUESTION = "NEXT_QUESTION";
 const PREVIOUS_QUESTION = "PREVIOUS_QUESTION";
 const SUBMIT_QUIZ = "SUBMIT_QUIZ";
 const REVIEW_QUIZ = "REVIEW_QUIZ";
-const END_REVIEW_QUIZ = "END_REVIEW_QUIZ";
 const FINALIZE = "FINALIZE";
 
 const quizReducer = (state, action) => {
@@ -85,12 +84,6 @@ const quizReducer = (state, action) => {
         position: 0,
         currQuestion: currQuestion,
         quizStatus: QUIZ_STATUS.REVIEW,
-      };
-    }
-    case END_REVIEW_QUIZ: {
-      return {
-        ...state,
-        quizStatus: QUIZ_STATUS.FINISHED,
       };
     }
     case FINALIZE: {
@@ -170,7 +163,7 @@ const Quiz = (props) => {
 
   const onQuestionExitHandler = () => {
     if (quizState.quizStatus === QUIZ_STATUS.REVIEW) {
-      dispatchQuizState({ type: END_REVIEW_QUIZ });
+      dispatchQuizState({ type: VIEW_RESULTS });
       return;
     }
     endQuizHandler();

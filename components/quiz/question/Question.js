@@ -50,7 +50,7 @@ const Question = (props) => {
         <View style={styles.button}>
           <Button
             color={colors.activeColor}
-            title="NEXT"
+            title=">>"
             onPress={() => {
               finalize();
               props.onNext(userQuestion);
@@ -83,7 +83,7 @@ const Question = (props) => {
         <View style={styles.button}>
           <Button
             color={colors.activeColor}
-            title="PREVIOUS"
+            title="<<"
             onPress={() => {
               finalize();
               props.onPrevious(userQuestion);
