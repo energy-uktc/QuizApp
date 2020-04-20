@@ -10,6 +10,7 @@ class Question {
     this.question = question;
     this.points = points;
     this.quizId = quizId;
+    this.type = null;
   }
 }
 
@@ -20,6 +21,10 @@ export class OpenQuestion extends Question {
   }
   setCorrectAnswer(correctAnswer) {
     this.correctAnswer = correctAnswer;
+  }
+
+  setAnswer(answer) {
+    return new AnsweredOpenQuestion(this, answer);
   }
 }
 
@@ -39,7 +44,43 @@ export class SingleChoiceQuestion extends Question {
     };
   }
 
+  setPossibleAnswers(possibleAnswers) {
+    this.possibleAnswers = possibleAnswers;
+  }
+
   setCorrectAnswer(correctAnswerId) {
     this.possibleAnswers[correctAnswerId].truthy = true;
+  }
+
+  setAnswer(answer) {
+    return new AnsweredSingleChoiceQuestion(this, answer);
+  }
+}
+
+export class AnsweredSingleChoiceQuestion extends SingleChoiceQuestion {
+  constructor(question, answer) {
+    super(
+      question.id,
+      question.number,
+      question.question,
+      question.points,
+      question.quizId
+    );
+    this.possibleAnswers = question.possibleAnswers;
+    this.userAnswer = answer;
+  }
+}
+
+export class AnsweredOpenQuestion extends OpenQuestion {
+  constructor(question, answer) {
+    super(
+      question.id,
+      question.number,
+      question.question,
+      question.points,
+      question.quizId
+    );
+    this.correctAnswer = question.correctAnswer;
+    this.userAnswer = answer;
   }
 }

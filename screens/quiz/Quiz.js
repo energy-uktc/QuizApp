@@ -13,10 +13,11 @@ import {
 import colors from "../../constants/colors";
 import Question from "../../components/quiz/question/Question";
 import QuizResult from "./QuizResult";
-import { QUIZ_STATUS } from "../../utils/quizUtils";
+import { QUIZ_STATUS } from "../../service/quizService";
 
 const INIT = "INIT";
 const VIEW_RESULTS = "VIEW_RESULTS";
+const ANSWER_QUESTION = "ANSWER_QUESTION";
 const START_QUIZ = "START_QUIZ";
 const NEXT_QUESTION = "NEXT_QUESTION";
 const PREVIOUS_QUESTION = "PREVIOUS_QUESTION";
@@ -27,7 +28,7 @@ const FINALIZE = "FINALIZE";
 const quizReducer = (state, action) => {
   let position = state.position;
   let quizQuestions = state.quizQuestions;
-  let currQuestion = null;
+  let currQuestion = state.currQuestion;
   switch (action.type) {
     case INIT:
       return {
@@ -35,38 +36,45 @@ const quizReducer = (state, action) => {
         quizStatus: QUIZ_STATUS.INIT,
       };
     case START_QUIZ:
+      position = 0;
+      if (quizQuestions.length === 0) {
+        return {
+          ...state,
+          quizStatus: QUIZ_STATUS.FINISHED,
+        };
+      }
       currQuestion = quizQuestions[position];
       return {
         ...state,
         currQuestion: currQuestion,
-        position: 0,
+        position: position,
         quizStatus: QUIZ_STATUS.STARTED,
       };
+    case ANSWER_QUESTION:
+      quizQuestions[position] = currQuestion.setAnswer(action.answer);
+      return {
+        ...state,
+        quizQuestions: quizQuestions,
+      };
     case NEXT_QUESTION:
-      quizQuestions[position] = action.question;
       position++;
       currQuestion = quizQuestions[position];
       return {
         ...state,
-        quizQuestions: quizQuestions,
         position: position,
         currQuestion: currQuestion,
       };
     case PREVIOUS_QUESTION:
-      quizQuestions[position] = action.question;
       position--;
       currQuestion = quizQuestions[position];
       return {
         ...state,
-        quizQuestions: quizQuestions,
         position: position,
         currQuestion: currQuestion,
       };
     case SUBMIT_QUIZ: {
-      quizQuestions[position] = action.question;
       return {
         ...state,
-        quizQuestions: quizQuestions,
         quizStatus: QUIZ_STATUS.FINISHED,
       };
     }
@@ -98,7 +106,6 @@ const quizReducer = (state, action) => {
 
 const Quiz = (props) => {
   const questions = useSelector((state) => {
-    console.log(props.quiz);
     return state.question.questions
       .filter((q) => q.quizId === props.quiz.id)
       .sort((q1, q2) => {
@@ -114,7 +121,6 @@ const Quiz = (props) => {
     position: 0,
     quizStatus: QUIZ_STATUS.NONE,
   });
-
   useEffect(() => {
     switch (props.requestedState) {
       case QUIZ_STATUS.INIT:
@@ -135,21 +141,27 @@ const Quiz = (props) => {
     : "";
 
   const startQuiz = () => {
-    //initializeQuestions();
     if (!quizState.quizQuestions) return;
     if (!quizState.quizQuestions.length === 0) return;
     dispatchQuizState({ type: START_QUIZ });
   };
 
-  const onNextQuestionHandler = (question) => {
-    dispatchQuizState({ type: NEXT_QUESTION, question: question });
+  const onNextQuestionHandler = (answer) => {
+    if (!quizState.quizStatus !== QUIZ_STATUS.REVIEW) {
+      dispatchQuizState({ type: ANSWER_QUESTION, answer: answer });
+    }
+    dispatchQuizState({ type: NEXT_QUESTION });
   };
-  const onPreviousQuestionHandler = (question) => {
-    dispatchQuizState({ type: PREVIOUS_QUESTION, question: question });
+  const onPreviousQuestionHandler = (answer) => {
+    if (!quizState.quizStatus !== QUIZ_STATUS.REVIEW) {
+      dispatchQuizState({ type: ANSWER_QUESTION, answer: answer });
+    }
+    dispatchQuizState({ type: PREVIOUS_QUESTION });
   };
 
-  const onSubmitHandler = (question) => {
-    dispatchQuizState({ type: SUBMIT_QUIZ, question: question });
+  const onSubmitHandler = (answer) => {
+    dispatchQuizState({ type: ANSWER_QUESTION, answer: answer });
+    dispatchQuizState({ type: SUBMIT_QUIZ });
   };
 
   const endQuizHandler = () => {
@@ -224,7 +236,6 @@ const Quiz = (props) => {
       />
     );
   }
-
   return (
     <Modal
       transparent={false}

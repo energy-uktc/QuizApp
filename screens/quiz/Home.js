@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Button } from "react-native";
 import QuizList from "./QuizList";
 import Quiz from "./Quiz";
-import { QUIZ_STATUS } from "../../utils/quizUtils";
+import { QUIZ_STATUS } from "../../service/quizService";
 
 export default HomeScreen = (props) => {
   const [quiz, setQuiz] = useState(null);

@@ -11,16 +11,6 @@ export const QUIZZES = [
     ".Net Quiz for Beginners",
     "https://dotnetfoundation.org/img/dot_bot.png",
     "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
-      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully." +
-      "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
-      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully." +
-      "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
-      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully." +
-      "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
-      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully." +
-      "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
-      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully." +
-      "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
       "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully.",
     { min: 25, sec: 30 },
     new Date(2020, 1, 30),
@@ -222,7 +212,4 @@ question.addPossibleAnswer(
 );
 question.setCorrectAnswer(3);
 QUESTIONS.push(question);
-
-console.log(`QUIZ_QUESTIONS: ${JSON.stringify(QUESTIONS)}`);
-
 export const QUIZ_QUESTIONS = QUESTIONS;

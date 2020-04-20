@@ -16,20 +16,20 @@ import LogoutButton from "../components/UI/LogoutButton";
 //const defaultNavOptions = {};
 const defaultNavOptions = {
   headerStyle: {
-    backgroundColor: Platform.OS === "android" ? colors.primary : "white"
+    backgroundColor: Platform.OS === "android" ? colors.primary : "white",
   },
   headerTitleStyle: {
     fontFamily: "open-sans-bold",
     textShadowColor: colors.activeColor,
     textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 1
+    textShadowRadius: 1,
   },
   headerBackTitleStyle: {
-    fontFamily: "open-sans"
+    fontFamily: "open-sans",
   },
 
   headerTintColor:
-    Platform.OS === "android" ? colors.inactiveColor : colors.primary
+    Platform.OS === "android" ? colors.inactiveColor : colors.primary,
 };
 const Tab = //createBottomTabNavigator();
   Platform.OS === "android"
@@ -37,13 +37,13 @@ const Tab = //createBottomTabNavigator();
     : createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-const QuizNavigator = props => {
+const QuizNavigator = (props) => {
   return (
     <Stack.Navigator initialRouteName="Home" screenOptions={defaultNavOptions}>
       <Stack.Screen
         options={{
           title: "Quiz Categories",
-          headerRight: () => <LogoutButton />
+          headerRight: () => <LogoutButton />,
         }}
         name="Home"
         component={HomeScreen}
@@ -52,21 +52,21 @@ const QuizNavigator = props => {
   );
 };
 
-const ResultsNavigator = props => {
+const ResultsNavigator = (props) => {
   return (
     <Stack.Navigator
       initialRouteName="History"
       screenOptions={{
         ...defaultNavOptions,
         headerStyle: {
-          backgroundColor: Platform.OS === "android" ? colors.accent : "white"
-        }
+          backgroundColor: Platform.OS === "android" ? colors.accent : "white",
+        },
       }}
     >
       <Stack.Screen
         options={{
           title: "Your Results",
-          headerRight: () => <LogoutButton />
+          headerRight: () => <LogoutButton />,
         }}
         name="History"
         component={ResultsScreen}
@@ -75,9 +75,9 @@ const ResultsNavigator = props => {
   );
 };
 
-export default NavContainer = props => {
-  let isLoading = useSelector(state => state.loading.loading);
-  let isAuth = useSelector(state => !!state.auth.idToken);
+export default NavContainer = (props) => {
+  let isLoading = useSelector((state) => state.loading.loading);
+  let isAuth = useSelector((state) => !!state.auth.userId);
   if (isLoading) return <StartupScreen />;
 
   return (
@@ -95,11 +95,11 @@ export default NavContainer = props => {
             options={{
               title: "Home",
               tabBarColor: colors.primary,
-              tabBarIcon: tabInfo => {
+              tabBarIcon: (tabInfo) => {
                 return (
                   <Ionicons name="ios-home" size={25} color={tabInfo.color} />
                 );
-              }
+              },
             }}
             name="Home"
             component={QuizNavigator}
@@ -108,11 +108,11 @@ export default NavContainer = props => {
             options={{
               title: "History",
               tabBarColor: colors.accent,
-              tabBarIcon: tabInfo => {
+              tabBarIcon: (tabInfo) => {
                 return (
                   <Ionicons name="ios-stats" size={25} color={tabInfo.color} />
                 );
-              }
+              },
             }}
             name="History"
             component={ResultsNavigator}

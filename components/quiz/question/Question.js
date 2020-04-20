@@ -4,23 +4,16 @@ import colors from "../../../constants/colors";
 import * as componentUtils from "../../utils";
 
 const Question = (props) => {
-  let userQuestion = props.question;
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const currQuestion = props.question;
+  const userAnswer = currQuestion.userAnswer;
   const QuestionBodyComponent = componentUtils.getQuestionComponentByQuestionType(
     currQuestion.type
   );
 
   useEffect(() => {
-    if (userQuestion.userAnswer) {
-      console.log(
-        `useEffect.CurrQuestion: ${userQuestion.number} UserAnswer: ${userQuestion.userAnswer}`
-      );
-      setSelectedAnswer(userQuestion.userAnswer);
-    }
-    setIsLoading(false);
-  }, [userQuestion]);
+    setSelectedAnswer(userAnswer);
+  }, [props]);
 
   const selectAnswer = (ans) => {
     if (props.reviewMode) {
@@ -28,21 +21,12 @@ const Question = (props) => {
     }
     setSelectedAnswer(ans);
   };
-  const finalize = () => {
-    setIsLoading(true);
-    if (props.reviewMode) {
-      return;
-    }
-    userQuestion = {
-      ...currQuestion,
-      userAnswer: selectedAnswer,
-    };
-    setSelectedAnswer(null);
-  };
 
-  if (isLoading) {
-    return null;
-  }
+  const handleAction = (action) => {
+    const ans = selectedAnswer;
+    setSelectedAnswer(null);
+    action(ans);
+  };
 
   const actionButton = (
     <View style={styles.actionButton}>
@@ -52,8 +36,7 @@ const Question = (props) => {
             color={colors.activeColor}
             title=">>"
             onPress={() => {
-              finalize();
-              props.onNext(userQuestion);
+              handleAction(props.onNext);
             }}
           />
         </View>
@@ -64,8 +47,7 @@ const Question = (props) => {
             color={colors.activeColor}
             title="SUBMIT"
             onPress={() => {
-              finalize();
-              props.onSubmit(userQuestion);
+              handleAction(props.onSubmit);
             }}
           />
         </View>
@@ -85,8 +67,7 @@ const Question = (props) => {
             color={colors.activeColor}
             title="<<"
             onPress={() => {
-              finalize();
-              props.onPrevious(userQuestion);
+              handleAction(props.onPrevious);
             }}
           />
         </View>

@@ -9,13 +9,12 @@ import {
 } from "react-native";
 import colors from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import * as quizUtils from "../../utils/quizUtils";
+import * as quizService from "../../service/quizService";
 
 const QuizResult = (props) => {
   const dim = Dimensions.get("window");
-  console.log(props.userQuestions);
-  let totalPoints = quizUtils.calculateQuizTotalPoints(props.userQuestions);
-  let userPoints = quizUtils.calculateQuizEarnedPoints(props.userQuestions);
+  let totalPoints = quizService.calculateQuizTotalPoints(props.userQuestions);
+  let userPoints = quizService.calculateQuizEarnedPoints(props.userQuestions);
   const minimumPoints = (props.quiz.minimumPointsPrc / 100) * totalPoints;
   let score = 100;
   if (totalPoints) {
