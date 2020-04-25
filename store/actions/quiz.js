@@ -1,6 +1,6 @@
 import { URL } from "../../constants/api";
 import Quiz from "../../models/quiz";
-import { refreshTokenIfExpired } from "../../service/authentication";
+import { refreshTokenIfExpired } from "../../service/authService";
 export const GET_QUIZZES = "GET_QUIZZES";
 export const ADD_QUIZ = "ADD_QUIZ";
 

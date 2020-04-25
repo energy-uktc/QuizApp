@@ -3,13 +3,16 @@ import {
   SingleChoiceQuestion,
   OpenQuestion,
 } from "../models/question";
+import * as authService from "./authService";
+import { URL } from "../constants/api";
 
 export const QUIZ_STATUS = {
-  NONE: 0,
-  INIT: 1,
-  STARTED: 2,
-  FINISHED: 3,
-  REVIEW: 4,
+  NONE: "NONE",
+  INIT: "INIT",
+  STARTED: "STARTED",
+  FINISHED: "FINISHED",
+  REVIEW: "REVIEW",
+  ERROR: "ERROR",
 };
 
 export const calculateQuizTotalPoints = (questions) => {
@@ -88,4 +91,86 @@ export const createJsonFromQuestion = (question) => {
       });
     }
   }
+};
+
+export const insertFullQuiz = async (quiz, questions) => {
+  const quizId = await insertQuiz(quiz);
+  questions.forEach(async (q) => {
+    q.quizId = quizId;
+    await insertQuestion(q);
+  });
+};
+
+export const insertQuiz = async (quiz) => {
+  console.log(JSON.stringify(quiz));
+  if (!(await authService.refreshTokenIfExpired())) {
+    return false;
+  }
+  const tokenId = await authService.getTokenId();
+  const userId = authService.getUserId();
+  const response = await fetch(`${URL}/quiz.json?auth=${tokenId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: quiz.title,
+      imageUrl: quiz.imageUrl,
+      description: quiz.description,
+      timeLimit: quiz.timeLimit,
+      date: quiz.date,
+      minimumPointsPrc: quiz.minimumPointsPrc,
+      ownerId: userId,
+    }),
+  });
+  if (!response.ok) {
+    console.log(`ADD_QUIZ: Error response: ${JSON.stringify(response)}`);
+    throw new Error(
+      `Something went wrong. ${response.statusText ? response.statusText : ""}`
+    );
+  }
+  const resData = await response.json();
+  return resData.name;
+};
+
+export const insertQuestion = async (question) => {
+  if (!(await authService.refreshTokenIfExpired())) {
+    return false;
+  }
+  const tokenId = await authService.getTokenId();
+
+  const response = await fetch(`${URL}/question.json?auth=${tokenId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: createJsonFromQuestion(question),
+  });
+
+  if (!response.ok) {
+    console.log(`ADD_QUESTION: Error response: ${JSON.stringify(response)}`);
+    throw new Error(
+      `Something went wrong. ${response.statusText ? response.statusText : ""}`
+    );
+  }
+  const resData = await response.json();
+  return resData.name;
+};
+
+export const fetchQuestions = async (quizId) => {
+  const response = await fetch(
+    `${URL}/question.json?orderBy="quizId"&equalTo="${quizId}"`
+  );
+  if (!response.ok) {
+    console.log(`GET_QUESTIONS: Error response: ${JSON.stringify(response)}`);
+    throw new Error(
+      `Something went wrong. ${response.statusText ? response.statusText : ""}`
+    );
+  }
+  const resData = await response.json();
+  let loadedQuestions = [];
+  for (const key in resData) {
+    loadedQuestions.push(createQuestionFromJson(key, resData[key]));
+  }
+  return loadedQuestions;
 };

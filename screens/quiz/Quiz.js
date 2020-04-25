@@ -1,5 +1,4 @@
-import React, { useEffect, useReducer } from "react";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,126 +12,69 @@ import {
 import colors from "../../constants/colors";
 import Question from "../../components/quiz/question/Question";
 import QuizResult from "./QuizResult";
-import { QUIZ_STATUS } from "../../service/quizService";
-
-const INIT = "INIT";
-const VIEW_RESULTS = "VIEW_RESULTS";
-const ANSWER_QUESTION = "ANSWER_QUESTION";
-const START_QUIZ = "START_QUIZ";
-const NEXT_QUESTION = "NEXT_QUESTION";
-const PREVIOUS_QUESTION = "PREVIOUS_QUESTION";
-const SUBMIT_QUIZ = "SUBMIT_QUIZ";
-const REVIEW_QUIZ = "REVIEW_QUIZ";
-const FINALIZE = "FINALIZE";
-
-const quizReducer = (state, action) => {
-  let position = state.position;
-  let quizQuestions = state.quizQuestions;
-  let currQuestion = state.currQuestion;
-  switch (action.type) {
-    case INIT:
-      return {
-        ...state,
-        quizStatus: QUIZ_STATUS.INIT,
-      };
-    case START_QUIZ:
-      position = 0;
-      if (quizQuestions.length === 0) {
-        return {
-          ...state,
-          quizStatus: QUIZ_STATUS.FINISHED,
-        };
-      }
-      currQuestion = quizQuestions[position];
-      return {
-        ...state,
-        currQuestion: currQuestion,
-        position: position,
-        quizStatus: QUIZ_STATUS.STARTED,
-      };
-    case ANSWER_QUESTION:
-      quizQuestions[position] = currQuestion.setAnswer(action.answer);
-      return {
-        ...state,
-        quizQuestions: quizQuestions,
-      };
-    case NEXT_QUESTION:
-      position++;
-      currQuestion = quizQuestions[position];
-      return {
-        ...state,
-        position: position,
-        currQuestion: currQuestion,
-      };
-    case PREVIOUS_QUESTION:
-      position--;
-      currQuestion = quizQuestions[position];
-      return {
-        ...state,
-        position: position,
-        currQuestion: currQuestion,
-      };
-    case SUBMIT_QUIZ: {
-      return {
-        ...state,
-        quizStatus: QUIZ_STATUS.FINISHED,
-      };
-    }
-    case VIEW_RESULTS: {
-      return {
-        ...state,
-        quizStatus: QUIZ_STATUS.FINISHED,
-      };
-    }
-    case REVIEW_QUIZ: {
-      position = 0;
-      currQuestion = quizQuestions[position];
-      return {
-        ...state,
-        position: 0,
-        currQuestion: currQuestion,
-        quizStatus: QUIZ_STATUS.REVIEW,
-      };
-    }
-    case FINALIZE: {
-      return {
-        ...state,
-        quizStatus: QUIZ_STATUS.INIT,
-      };
-    }
-  }
-  return state;
-};
+import LoadingControl from "../../components/UI/LoadingControl";
+import { QUIZ_STATUS, fetchQuestions } from "../../service/quizService";
 
 const Quiz = (props) => {
-  const questions = useSelector((state) => {
-    return state.question.questions
-      .filter((q) => q.quizId === props.quiz.id)
-      .sort((q1, q2) => {
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [position, setPosition] = useState(0);
+  const [quizStatus, setQuizStatus] = useState(QUIZ_STATUS.NONE);
+
+  let currQuestion = null;
+  if (quizQuestions) {
+    currQuestion = quizQuestions[position];
+  }
+
+  useEffect(() => {
+    switch (props.requestedState) {
+      case QUIZ_STATUS.INIT:
+        setQuizStatus(QUIZ_STATUS.INIT);
+        break;
+      case QUIZ_STATUS.FINISHED:
+        setQuizStatus(QUIZ_STATUS.FINISHED);
+        break;
+      default:
+        setQuizStatus(QUIZ_STATUS.INIT);
+    }
+  }, [props.requestedState]);
+
+  const loadQuestions = useCallback(async () => {
+    try {
+      const loadedQuestions = await fetchQuestions(props.quiz.id);
+      loadedQuestions.sort((q1, q2) => {
         if (q1.number < q2.number) return -1;
         if (q1.number > q2.number) return 1;
         return 0;
       });
-  });
-
-  const [quizState, dispatchQuizState] = useReducer(quizReducer, {
-    quizQuestions: questions,
-    currQuestion: null,
-    position: 0,
-    quizStatus: QUIZ_STATUS.NONE,
-  });
-  useEffect(() => {
-    switch (props.requestedState) {
-      case QUIZ_STATUS.INIT:
-        dispatchQuizState({ type: INIT });
-        break;
-      case QUIZ_STATUS.FINISHED:
-        dispatchQuizState({ type: VIEW_RESULTS });
-        break;
-      default:
-        dispatchQuizState({ type: INIT });
+      setQuizQuestions(loadedQuestions);
+    } catch (err) {
+      setQuizStatus(QUIZ_STATUS.ERROR);
     }
-  }, [props.requestedState]);
+  }, [fetchQuestions, setQuizQuestions, setQuizStatus]);
+
+  useEffect(() => {
+    setQuizStatus(QUIZ_STATUS.NONE);
+    loadQuestions().then(() => {
+      setQuizStatus(QUIZ_STATUS.INIT);
+    });
+  }, [loadQuestions]);
+
+  if (quizStatus == QUIZ_STATUS.NONE) {
+    return <LoadingControl />;
+  }
+
+  if (quizStatus == QUIZ_STATUS.ERROR) {
+    return (
+      <View style={styles.centered}>
+        <Text>{error.message}</Text>
+        <Button
+          title="Try again"
+          onPress={loadQuestions}
+          color={colors.primary}
+        />
+      </View>
+    );
+  }
 
   const dim = Dimensions.get("window");
   const timeMessage = props.quiz.timeLimit
@@ -141,49 +83,57 @@ const Quiz = (props) => {
     : "";
 
   const startQuiz = () => {
-    if (!quizState.quizQuestions) return;
-    if (!quizState.quizQuestions.length === 0) return;
-    dispatchQuizState({ type: START_QUIZ });
+    if (!quizQuestions || quizQuestions.length === 0) {
+      setQuizStatus(QUIZ_STATUS.FINISHED);
+      return;
+    }
+    setPosition(0);
+    setQuizStatus(QUIZ_STATUS.STARTED);
   };
 
   const onNextQuestionHandler = (answer) => {
-    if (!quizState.quizStatus !== QUIZ_STATUS.REVIEW) {
-      dispatchQuizState({ type: ANSWER_QUESTION, answer: answer });
+    if (!quizStatus !== QUIZ_STATUS.REVIEW) {
+      const updatedQuestions = quizQuestions;
+      updatedQuestions[position] = currQuestion.setAnswer(answer);
+      setQuizQuestions(updatedQuestions);
     }
-    dispatchQuizState({ type: NEXT_QUESTION });
+    const newPosition = position + 1;
+    setPosition(newPosition);
   };
   const onPreviousQuestionHandler = (answer) => {
-    if (!quizState.quizStatus !== QUIZ_STATUS.REVIEW) {
-      dispatchQuizState({ type: ANSWER_QUESTION, answer: answer });
+    if (!quizStatus !== QUIZ_STATUS.REVIEW) {
+      const updatedQuestions = quizQuestions;
+      updatedQuestions[position] = currQuestion.setAnswer(answer);
+      setQuizQuestions(updatedQuestions);
     }
-    dispatchQuizState({ type: PREVIOUS_QUESTION });
+    const newPosition = position - 1;
+    setPosition(newPosition);
   };
 
   const onSubmitHandler = (answer) => {
-    dispatchQuizState({ type: ANSWER_QUESTION, answer: answer });
-    dispatchQuizState({ type: SUBMIT_QUIZ });
+    const updatedQuestions = quizQuestions;
+    updatedQuestions[position] = currQuestion.setAnswer(answer);
+    setQuizQuestions(updatedQuestions);
+    setQuizStatus(QUIZ_STATUS.FINISHED);
   };
 
   const endQuizHandler = () => {
-    dispatchQuizState({ type: FINALIZE });
+    setQuizStatus(QUIZ_STATUS.INIT);
     props.onGoBack();
   };
 
   const reviewQuestionsHandler = () => {
-    dispatchQuizState({ type: REVIEW_QUIZ });
+    setPosition(0);
+    setQuizStatus(QUIZ_STATUS.REVIEW);
   };
 
   const onQuestionExitHandler = () => {
-    if (quizState.quizStatus === QUIZ_STATUS.REVIEW) {
-      dispatchQuizState({ type: VIEW_RESULTS });
+    if (quizStatus === QUIZ_STATUS.REVIEW) {
+      setQuizStatus(QUIZ_STATUS.FINISHED);
       return;
     }
     endQuizHandler();
   };
-
-  if (quizState.quizStatus === QUIZ_STATUS.NONE) {
-    return null;
-  }
 
   let content = (
     <View style={styles.container}>
@@ -209,16 +159,13 @@ const Quiz = (props) => {
     </View>
   );
 
-  if (
-    quizState.quizStatus == QUIZ_STATUS.STARTED ||
-    quizState.quizStatus == QUIZ_STATUS.REVIEW
-  ) {
+  if (quizStatus == QUIZ_STATUS.STARTED || quizStatus == QUIZ_STATUS.REVIEW) {
     content = (
       <Question
-        question={quizState.currQuestion}
-        isLast={quizState.quizQuestions.length === quizState.position + 1}
-        isFirst={quizState.position === 0}
-        reviewMode={quizState.quizStatus === QUIZ_STATUS.REVIEW}
+        question={currQuestion}
+        isLast={quizQuestions.length === position + 1}
+        isFirst={position === 0}
+        reviewMode={quizStatus === QUIZ_STATUS.REVIEW}
         onNext={onNextQuestionHandler}
         onPrevious={onPreviousQuestionHandler}
         onSubmit={onSubmitHandler}
@@ -226,10 +173,10 @@ const Quiz = (props) => {
       />
     );
   }
-  if (quizState.quizStatus == QUIZ_STATUS.FINISHED) {
+  if (quizStatus == QUIZ_STATUS.FINISHED) {
     content = (
       <QuizResult
-        userQuestions={quizState.quizQuestions}
+        userQuestions={quizQuestions}
         quiz={props.quiz}
         onExit={endQuizHandler}
         onReview={reviewQuestionsHandler}
@@ -241,7 +188,7 @@ const Quiz = (props) => {
       transparent={false}
       animationType={"slide"}
       onRequestClose={() => {
-        if (!quizState.isQuizStarted) props.onGoBack();
+        if (quizStatus !== QUIZ_STATUS.STARTED) props.onGoBack();
       }}
     >
       <ScrollView contentContainerStyle={styles.scrollViewContent}>

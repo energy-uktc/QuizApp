@@ -9,7 +9,9 @@ import {
   StyleSheet,
 } from "react-native";
 import * as quizActions from "../../store/actions/quiz";
-import Quiz from "../../models/quiz";
+import * as quizService from "../../service/quizService";
+import { getQuizExample } from "../../data/dummyData";
+
 import LoadingControl from "../../components/UI/LoadingControl";
 import QuizItem from "../../components/quiz/QuizItem";
 
@@ -70,20 +72,10 @@ const QuizList = (props) => {
           title="ADD DEFAULT"
           onPress={async () => {
             try {
-              await dispatch(
-                quizActions.addQuiz(
-                  new Quiz(
-                    "",
-                    ".Net Quiz for Beginners",
-                    "https://dotnetfoundation.org/img/dot_bot.png",
-                    "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
-                      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully.",
-                    { min: 25, sec: 30 },
-                    new Date(2020, 1, 30),
-                    70
-                  )
-                )
-              );
+              const data = getQuizExample();
+              console.log(data.questions);
+              await quizService.insertFullQuiz(data.quiz, data.questions);
+              await loadQuizzes();
             } catch (e) {
               console.log(e);
             }

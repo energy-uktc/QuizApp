@@ -213,3 +213,105 @@ question.addPossibleAnswer(
 question.setCorrectAnswer(3);
 QUESTIONS.push(question);
 export const QUIZ_QUESTIONS = QUESTIONS;
+
+export const getQuizExample = () => {
+  const quiz = new Quiz(
+    "",
+    ".Net Quiz for Beginners",
+    "https://dotnetfoundation.org/img/dot_bot.png",
+    "Test your skills in .Net platform. We have 20 questions for you that will test your knowledge and will help you test your knowledge." +
+      "Please have in mind that you can take the test only once. 80% is the minimum to pass it successfully.",
+    { min: 25, sec: 30 },
+    new Date(2020, 1, 30),
+    70
+  );
+  const questions = [];
+  let question = new SingleChoiceQuestion(
+    "q1",
+    1,
+    "Which of the following keyword is used for including the namespaces in the program in C#?",
+    1,
+    "q1"
+  );
+  question.addPossibleAnswer(1, "imports");
+  question.addPossibleAnswer(2, "using");
+  question.addPossibleAnswer(3, "exports");
+  question.addPossibleAnswer(4, "None of the above.");
+  question.setCorrectAnswer(2);
+
+  questions.push(question);
+  ///
+  question = new SingleChoiceQuestion(
+    "q2",
+    2,
+    " Which of the following defines unboxing correctly?",
+    2,
+    "q1"
+  );
+  question.addPossibleAnswer(
+    1,
+    "When a value type is converted to object type, it is called unboxing."
+  );
+  question.addPossibleAnswer(
+    2,
+    "When an object type is converted to a value type, it is called unboxing."
+  );
+  question.addPossibleAnswer(3, "Both of the above.");
+  question.addPossibleAnswer(4, "None of the above.");
+  question.setCorrectAnswer(2);
+  questions.push(question);
+  ///
+  question = new SingleChoiceQuestion(
+    "q3",
+    3,
+    "Which member access modifier makes members accessible only within the body of the class or the struct in which they are declared ?",
+    1,
+    "q1"
+  );
+  question.addPossibleAnswer(1, "private");
+  question.addPossibleAnswer(2, "public");
+  question.addPossibleAnswer(3, "protected");
+  question.addPossibleAnswer(4, "internal");
+  question.setCorrectAnswer(1);
+  questions.push(question);
+
+  ///
+  question = new OpenQuestion(
+    "q4",
+    4,
+    "Which keyword is used in method declaration to allow for it to be overridden in a derived class?",
+    3,
+    "q1"
+  );
+  //question.setCorrectAnswer("virtual");
+  question.setCorrectAnswer("virtual");
+  questions.push(question);
+
+  ///
+  question = new SingleChoiceQuestion(
+    "q5",
+    5,
+    "Which of the following is not true about abstract classes?",
+    2,
+    "q1"
+  );
+  question.addPossibleAnswer(1, "An abstract class cannot be instantiated");
+  question.addPossibleAnswer(
+    2,
+    "The purpose of an abstract class is to provide a common definition of a base class that multiple derived classes can share"
+  );
+  question.addPossibleAnswer(
+    3,
+    "Abstract classes can not have implemented methods"
+  );
+  question.addPossibleAnswer(
+    4,
+    "Abstract classes may also define abstract methods"
+  );
+  question.setCorrectAnswer(3);
+  questions.push(question);
+  return {
+    quiz: quiz,
+    questions: questions,
+  };
+};

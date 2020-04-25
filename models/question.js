@@ -45,7 +45,20 @@ export class SingleChoiceQuestion extends Question {
   }
 
   setPossibleAnswers(possibleAnswers) {
-    this.possibleAnswers = possibleAnswers;
+    this.possibleAnswers = null;
+    let id = 0;
+    possibleAnswers.forEach((a) => {
+      if (a) {
+        id++;
+        this.possibleAnswers = {
+          ...this.possibleAnswers,
+          [id]: {
+            answer: a.answer,
+            truthy: a.truthy,
+          },
+        };
+      }
+    });
   }
 
   setCorrectAnswer(correctAnswerId) {
