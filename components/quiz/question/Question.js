@@ -14,7 +14,8 @@ const Question = (props) => {
 
   useEffect(() => {
     setSelectedAnswer(userAnswer);
-  }, [props]);
+    console.log("effect");
+  }, [props, userAnswer]);
 
   const selectAnswer = (ans) => {
     if (props.reviewMode) {
@@ -84,7 +85,7 @@ const Question = (props) => {
       <QuestionBodyComponent
         {...props}
         onSelectAnswer={selectAnswer}
-        selectedAnswer={selectedAnswer}
+        selectedAnswer={selectedAnswer ?? userAnswer}
       />
       {props.reviewMode && (
         <Text style={styles.pointsText}>Points : {currQuestion.points}</Text>

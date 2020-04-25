@@ -1,6 +1,6 @@
 import { QUIZZES, HISTORY_QUIZZES } from "../../data/dummyData";
-import { GET_QUIZZES, ADD_QUIZ } from "../actions/quiz";
-import Quiz from "../../models/quiz";
+import { GET_QUIZZES, ADD_QUIZ, ADD_RESULTS } from "../actions/quiz";
+import { Quiz, QuizResult } from "../../models/quiz";
 
 const initialState = {
   availableQuizzes: [],
@@ -13,8 +13,10 @@ export default (state = initialState, action) => {
       return {
         ...state,
         availableQuizzes: action.quizzes,
+        passedQuizzes: action.userQuizzes,
       };
-    case ADD_QUIZ: {
+    case ADD_QUIZ:
+      console.log(`ADD_QUIZ: ${action.quiz}`);
       const quiz = action.quiz;
       const newQuiz = new Quiz(
         action.id,
@@ -29,7 +31,26 @@ export default (state = initialState, action) => {
         ...state,
         availableQuizzes: state.availableQuizzes.concat(newQuiz),
       };
-    }
+
+    case ADD_RESULTS:
+      console.log(`ADD_QUIZ: ${action.quiz}`);
+      const readyQuiz = action.quiz;
+      const newUserQuiz = new QuizResult(
+        readyQuiz.id,
+        readyQuiz.title,
+        readyQuiz.imageUrl,
+        readyQuiz.description,
+        readyQuiz.timeLimit,
+        readyQuiz.date,
+        readyQuiz.minimumPointsPrc,
+        readyQuiz.quizId,
+        readyQuiz.passed,
+        readyQuiz.questions
+      );
+      return {
+        ...state,
+        passedQuizzes: state.passedQuizzes.concat(newUserQuiz),
+      };
   }
   return state;
 };

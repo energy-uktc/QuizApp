@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useDispatch } from "react-redux";
 import {
   View,
   Text,
@@ -8,35 +9,25 @@ import {
   Dimensions,
   Modal,
   ScrollView,
+  Alert,
 } from "react-native";
 import colors from "../../constants/colors";
 import Question from "../../components/quiz/question/Question";
 import QuizResult from "./QuizResult";
 import LoadingControl from "../../components/UI/LoadingControl";
-import { QUIZ_STATUS, fetchQuestions } from "../../service/quizService";
+import {
+  QUIZ_STATUS,
+  fetchQuestions,
+  insertQuizResults,
+} from "../../service/quizService";
+import { addResults } from "../../store/actions/quiz";
 
 const Quiz = (props) => {
+  const dispatch = useDispatch();
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [position, setPosition] = useState(0);
   const [quizStatus, setQuizStatus] = useState(QUIZ_STATUS.NONE);
-
-  let currQuestion = null;
-  if (quizQuestions) {
-    currQuestion = quizQuestions[position];
-  }
-
-  useEffect(() => {
-    switch (props.requestedState) {
-      case QUIZ_STATUS.INIT:
-        setQuizStatus(QUIZ_STATUS.INIT);
-        break;
-      case QUIZ_STATUS.FINISHED:
-        setQuizStatus(QUIZ_STATUS.FINISHED);
-        break;
-      default:
-        setQuizStatus(QUIZ_STATUS.INIT);
-    }
-  }, [props.requestedState]);
+  const [currQuestion, setCurrQuestion] = useState(null);
 
   const loadQuestions = useCallback(async () => {
     try {
@@ -54,10 +45,15 @@ const Quiz = (props) => {
 
   useEffect(() => {
     setQuizStatus(QUIZ_STATUS.NONE);
-    loadQuestions().then(() => {
-      setQuizStatus(QUIZ_STATUS.INIT);
-    });
-  }, [loadQuestions]);
+    if (props.requestedState === QUIZ_STATUS.FINISHED) {
+      setQuizQuestions(props.quiz.questions);
+      setQuizStatus(QUIZ_STATUS.FINISHED);
+    } else {
+      loadQuestions().then(() => {
+        setQuizStatus(QUIZ_STATUS.INIT);
+      });
+    }
+  }, [loadQuestions, props.requestedState]);
 
   if (quizStatus == QUIZ_STATUS.NONE) {
     return <LoadingControl />;
@@ -88,6 +84,7 @@ const Quiz = (props) => {
       return;
     }
     setPosition(0);
+    setCurrQuestion(quizQuestions[0] ?? null);
     setQuizStatus(QUIZ_STATUS.STARTED);
   };
 
@@ -99,6 +96,7 @@ const Quiz = (props) => {
     }
     const newPosition = position + 1;
     setPosition(newPosition);
+    setCurrQuestion(quizQuestions[newPosition] ?? null);
   };
   const onPreviousQuestionHandler = (answer) => {
     if (!quizStatus !== QUIZ_STATUS.REVIEW) {
@@ -108,13 +106,24 @@ const Quiz = (props) => {
     }
     const newPosition = position - 1;
     setPosition(newPosition);
+    setCurrQuestion(quizQuestions[newPosition] ?? null);
   };
-
   const onSubmitHandler = (answer) => {
     const updatedQuestions = quizQuestions;
     updatedQuestions[position] = currQuestion.setAnswer(answer);
     setQuizQuestions(updatedQuestions);
-    setQuizStatus(QUIZ_STATUS.FINISHED);
+    setCurrQuestion(updatedQuestions[position]);
+    setQuizStatus(QUIZ_STATUS.NONE);
+    insertQuizResults(props.quiz, updatedQuestions)
+      .then((newQuizResult) => {
+        dispatch(addResults(newQuizResult));
+        setQuizStatus(QUIZ_STATUS.FINISHED);
+      })
+      .catch((err) => {
+        Alert.alert("Something went wrong", err.message, [
+          { text: "OK", onPress: () => setQuizStatus(QUIZ_STATUS.STARTED) },
+        ]);
+      });
   };
 
   const endQuizHandler = () => {
@@ -124,6 +133,7 @@ const Quiz = (props) => {
 
   const reviewQuestionsHandler = () => {
     setPosition(0);
+    setCurrQuestion(quizQuestions[0] ?? null);
     setQuizStatus(QUIZ_STATUS.REVIEW);
   };
 

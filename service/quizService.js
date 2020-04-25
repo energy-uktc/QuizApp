@@ -3,6 +3,7 @@ import {
   SingleChoiceQuestion,
   OpenQuestion,
 } from "../models/question";
+import { Quiz, QuizResult } from "../models/quiz";
 import * as authService from "./authService";
 import { URL } from "../constants/api";
 
@@ -41,6 +42,13 @@ export const calculateQuizEarnedPoints = (questions) => {
   return userPoints;
 };
 
+export const isPassed = (quiz, questions) => {
+  const totalPoints = calculateQuizTotalPoints(questions);
+  const userPoints = calculateQuizEarnedPoints(questions);
+  const minimumPoints = (quiz.minimumPointsPrc / 100) * totalPoints;
+  return !quiz.minimumPointsPrc || minimumPoints <= userPoints;
+};
+
 export const createQuestionFromJson = (id, jsonData) => {
   switch (jsonData.type) {
     case QUESTION_TYPE.OPEN_QUESTION: {
@@ -69,6 +77,11 @@ export const createQuestionFromJson = (id, jsonData) => {
   }
 };
 
+export const createAnsweredQuestionFromJson = (id, jsonData) => {
+  const question = createQuestionFromJson(id, jsonData);
+  return question.setAnswer(jsonData.userAnswer);
+};
+
 export const createJsonFromQuestion = (question) => {
   const jsonQuestion = {
     number: question.number,
@@ -94,15 +107,15 @@ export const createJsonFromQuestion = (question) => {
 };
 
 export const insertFullQuiz = async (quiz, questions) => {
-  const quizId = await insertQuiz(quiz);
+  const newQuiz = await insertQuiz(quiz);
   questions.forEach(async (q) => {
-    q.quizId = quizId;
+    q.quizId = newQuiz.id;
     await insertQuestion(q);
   });
+  return newQuiz;
 };
 
 export const insertQuiz = async (quiz) => {
-  console.log(JSON.stringify(quiz));
   if (!(await authService.refreshTokenIfExpired())) {
     return false;
   }
@@ -130,7 +143,17 @@ export const insertQuiz = async (quiz) => {
     );
   }
   const resData = await response.json();
-  return resData.name;
+  const newQuiz = new Quiz(
+    resData.name,
+    quiz.title,
+    quiz.imageUrl,
+    quiz.description,
+    quiz.timeLimit,
+    quiz.date,
+    quiz.minimumPointsPrc,
+    userId
+  );
+  return newQuiz;
 };
 
 export const insertQuestion = async (question) => {
@@ -173,4 +196,116 @@ export const fetchQuestions = async (quizId) => {
     loadedQuestions.push(createQuestionFromJson(key, resData[key]));
   }
   return loadedQuestions;
+};
+
+export const fetchQuizzes = async () => {
+  const response = await fetch(`${URL}/quiz.json`);
+  if (!response.ok) {
+    console.log(`GET_QUIZZES: Error response: ${JSON.stringify(response)}`);
+    throw new Error(
+      `Something went wrong. ${response.statusText ? response.statusText : ""}`
+    );
+  }
+  const resData = await response.json();
+  let loadedQuizzes = [];
+  for (const key in resData) {
+    const quiz = new Quiz(
+      key,
+      resData[key].title,
+      resData[key].imageUrl,
+      resData[key].description,
+      resData[key].timeLimit,
+      new Date(resData[key].date),
+      resData[key].minimumPointsPrc,
+      resData[key].ownerId
+    );
+    loadedQuizzes.push(quiz);
+  }
+  return loadedQuizzes;
+};
+
+export const insertQuizResults = async (quiz, questions) => {
+  if (!(await authService.refreshTokenIfExpired())) {
+    return false;
+  }
+  const tokenId = await authService.getTokenId();
+  const userId = authService.getUserId();
+  const date = new Date();
+  const passed = isPassed(quiz, questions);
+  const response = await fetch(
+    `${URL}/quizResults/${userId}.json?auth=${tokenId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: quiz.title,
+        imageUrl: quiz.imageUrl,
+        description: quiz.description,
+        timeLimit: quiz.timeLimit,
+        date: date,
+        minimumPointsPrc: quiz.minimumPointsPrc,
+        quizId: quiz.id,
+        passed: passed,
+        questions: questions,
+      }),
+    }
+  );
+  if (!response.ok) {
+    console.log(`ADD_RESULTS: Error response: ${JSON.stringify(response)}`);
+    throw new Error(
+      `Something went wrong. ${response.statusText ? response.statusText : ""}`
+    );
+  }
+  const resData = await response.json();
+  const newQuizResults = new QuizResult(
+    resData.name,
+    quiz.title,
+    quiz.imageUrl,
+    quiz.description,
+    quiz.timeLimit,
+    date,
+    quiz.minimumPointsPrc,
+    quiz.id,
+    passed,
+    questions
+  );
+  return newQuizResults;
+};
+
+export const fetchUserQuizzes = async () => {
+  const userId = authService.getUserId();
+  const response = await fetch(`${URL}/quizResults/${userId}.json`);
+  if (!response.ok) {
+    console.log(
+      `GET_USER_QUIZZES: Error response: ${JSON.stringify(response)}`
+    );
+    throw new Error(
+      `Something went wrong. ${response.statusText ? response.statusText : ""}`
+    );
+  }
+  const resData = await response.json();
+  let loadedQuizzes = [];
+  for (const key in resData) {
+    const quizQuestions = [];
+    resData[key].questions.forEach((q) => {
+      quizQuestions.push(createAnsweredQuestionFromJson(q.id, q));
+    });
+
+    const quiz = new QuizResult(
+      key,
+      resData[key].title,
+      resData[key].imageUrl,
+      resData[key].description,
+      resData[key].timeLimit,
+      new Date(resData[key].date),
+      resData[key].minimumPointsPrc,
+      resData[key].quizId,
+      resData[key].passed,
+      quizQuestions
+    );
+    loadedQuizzes.push(quiz);
+  }
+  return loadedQuizzes;
 };

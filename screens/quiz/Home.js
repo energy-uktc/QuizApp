@@ -1,35 +1,98 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { View, Text, StyleSheet, Button } from "react-native";
 import QuizList from "./QuizList";
 import Quiz from "./Quiz";
+import * as quizActions from "../../store/actions/quiz";
+import * as quizService from "../../service/quizService";
+import { getQuizExample } from "../../data/dummyData";
+import colors from "../../constants/colors";
+import LoadingControl from "../../components/UI/LoadingControl";
 import { QUIZ_STATUS } from "../../service/quizService";
 
 export default HomeScreen = (props) => {
   const [quiz, setQuiz] = useState(null);
-  const [requestedStatus, setRequestedStatus] = useState(QUIZ_STATUS.INIT);
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
+  const quizzes = useSelector((state) => state.quiz.availableQuizzes).sort(
+    (q1, q2) => {
+      if (q1.date < q2.date) return 1;
+      if (q1.date > q2.date) return -1;
+      return 0;
+    }
+  );
 
-  const TakeQuizHandler = (quiz) => {
+  const loadQuizzes = useCallback(async () => {
+    setError(null);
+    try {
+      await dispatch(quizActions.getQuizzes());
+    } catch (err) {
+      setError(err);
+    }
+  }, [dispatch, setIsLoading]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    loadQuizzes().then(() => {
+      setIsLoading(false);
+    });
+  }, [loadQuizzes]);
+
+  if (isLoading) {
+    return <LoadingControl />;
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text>{error.message}</Text>
+        <Button
+          title="Try again"
+          onPress={loadQuizzes}
+          color={colors.primary}
+        />
+      </View>
+    );
+  }
+
+  if (quizzes.length === 0) {
+    return (
+      <View style={styles.centered}>
+        <Text>There is no quizzes</Text>
+        <Button
+          title="ADD DEFAULT"
+          onPress={async () => {
+            try {
+              const data = getQuizExample();
+              const newQuiz = await quizService.insertFullQuiz(
+                data.quiz,
+                data.questions
+              );
+              dispatch(quizActions.addQuiz(newQuiz));
+            } catch (e) {
+              setError(e);
+            }
+          }}
+        />
+      </View>
+    );
+  }
+
+  const takeQuizHandler = (quiz) => {
     setQuiz(quiz);
-    setRequestedStatus(QUIZ_STATUS.INIT);
   };
-  const GoBackFromQuizDetailsHandler = () => {
+  const goBackFromQuizDetailsHandler = () => {
     setQuiz(null);
   };
 
-  const ReviewQuizHandler = (quiz) => {
-    setQuiz(quiz);
-    setRequestedStatus(QUIZ_STATUS.FINISHED);
-  };
-
-  let content = (
-    <QuizList onTakeQuiz={TakeQuizHandler} onViewResults={ReviewQuizHandler} />
-  );
+  let content = <QuizList quizzes={quizzes} onTakeQuiz={takeQuizHandler} />;
   if (quiz) {
     content = (
       <Quiz
-        requestedState={requestedStatus}
+        requestedState={QUIZ_STATUS.INIT}
         quiz={quiz}
-        onGoBack={GoBackFromQuizDetailsHandler}
+        onGoBack={goBackFromQuizDetailsHandler}
       />
     );
   }

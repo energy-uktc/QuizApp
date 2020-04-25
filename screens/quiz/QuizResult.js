@@ -15,12 +15,13 @@ const QuizResult = (props) => {
   const dim = Dimensions.get("window");
   let totalPoints = quizService.calculateQuizTotalPoints(props.userQuestions);
   let userPoints = quizService.calculateQuizEarnedPoints(props.userQuestions);
-  const minimumPoints = (props.quiz.minimumPointsPrc / 100) * totalPoints;
+
   let score = 100;
   if (totalPoints) {
     score = Math.round((userPoints / totalPoints) * 10000, 2) / 100;
   }
-  const passed = !props.quiz.minimumPointsPrc || minimumPoints <= userPoints;
+  const passed = quizService.isPassed(props.quiz, props.userQuestions);
+
   const message = passed
     ? "Congratulations! You passed the test!"
     : "Sorry ! You didn't pass the test!";

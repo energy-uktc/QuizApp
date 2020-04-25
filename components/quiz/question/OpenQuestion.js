@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, Dimensions } from "react-native";
 import colors from "../../../constants/colors";
 
 const OpenQuestion = (props) => {
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState(null);
   const currQuestion = props.question;
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const OpenQuestion = (props) => {
         multiline={true}
         onChangeText={changeTextHandler}
         onBlur={() => props.onSelectAnswer(answer)}
-        value={answer}
+        value={answer ?? props.selectedAnswer}
       />
       {props.reviewMode && currQuestion.correctAnswer !== answer && (
         <Text style={styles.correctAnswerText}>
