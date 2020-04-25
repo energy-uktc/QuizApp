@@ -9,6 +9,7 @@ import {
   Platform,
   Button,
   Image,
+  Dimensions,
 } from "react-native";
 import Card from "../UI/Card";
 import colors from "../../constants/colors";
@@ -91,20 +92,27 @@ const QuizItem = (props) => {
               <Text style={styles.quizDescription}>
                 {props.quiz.description}
               </Text>
-              {props.isTaken ? (
-                <Button
-                  color={colors.activeColor}
-                  title="Your Result"
-                  onPress={() => props.onViewResults(props.quiz)}
-                />
-              ) : (
-                <Button
-                  color={colors.activeColor}
-                  title="Take the test"
-                  onPress={() => props.onTakeQuiz(props.quiz)}
-                />
-              )}
-
+              <View style={styles.buttonContainer}>
+                {props.onTakeQuiz ? (
+                  <View style={styles.button}>
+                    <Button
+                      style={styles.button}
+                      color={colors.activeColor}
+                      title={props.isTaken ? "Retry the quiz" : "Take the test"}
+                      onPress={() => props.onTakeQuiz(props.quiz)}
+                    />
+                  </View>
+                ) : null}
+                {props.isTaken && props.onViewResults ? (
+                  <View style={styles.button}>
+                    <Button
+                      color={colors.activeColor}
+                      title="Your Result"
+                      onPress={() => props.onViewResults(props.quiz)}
+                    />
+                  </View>
+                ) : null}
+              </View>
               <Touchable onPress={() => setIsExpanded(false)}>
                 <View style={styles.arrowUp}>
                   <Ionicons
@@ -145,15 +153,11 @@ const styles = StyleSheet.create({
     flex: 3,
     alignItems: "flex-end",
     justifyContent: "center",
-    // borderWidth: 1,
-    // borderColor: "red",
     width: "100%",
   },
   arrowUp: {
     alignItems: "center",
     justifyContent: "center",
-    // borderWidth: 1,
-    // borderColor: "red",
     paddingVertical: 5,
     width: "100%",
   },
@@ -170,8 +174,6 @@ const styles = StyleSheet.create({
     color: colors.activeColor,
     fontFamily: "open-sans",
     padding: 10,
-    // borderWidth: 1,
-    // borderColor: "red"
   },
   dateField: {
     color: "#ccc",
@@ -184,9 +186,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sampleInfo: {
-    //margin: 7,
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    width: "100%",
+  },
+  button: {
+    width: Dimensions.get("window").width / 3,
+    marginHorizontal: 20,
   },
 });
 

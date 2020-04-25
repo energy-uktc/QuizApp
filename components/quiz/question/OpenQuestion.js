@@ -21,7 +21,7 @@ const OpenQuestion = (props) => {
   if (!props.reviewMode) {
     frameStyle = { borderWidth: 1, borderColor: "black" };
   } else {
-    if (currQuestion.correctAnswer === answer) {
+    if (currQuestion.correctAnswer === (answer ?? props.selectedAnswer)) {
       frameStyle = styles.rightAnswer;
     } else {
       frameStyle = styles.wrongAnswer;

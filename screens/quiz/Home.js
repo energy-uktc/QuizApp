@@ -12,16 +12,33 @@ import { QUIZ_STATUS } from "../../service/quizService";
 
 export default HomeScreen = (props) => {
   const [quiz, setQuiz] = useState(null);
+  const [requestedState, setRequestedState] = useState(QUIZ_STATUS.INIT);
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
-  const quizzes = useSelector((state) => state.quiz.availableQuizzes).sort(
+  const passedQuizzes = useSelector((state) => state.quiz.passedQuizzes).sort(
     (q1, q2) => {
       if (q1.date < q2.date) return 1;
       if (q1.date > q2.date) return -1;
       return 0;
     }
   );
+  const quizzes = useSelector((state) => state.quiz.availableQuizzes)
+    .sort((q1, q2) => {
+      if (q1.date < q2.date) return 1;
+      if (q1.date > q2.date) return -1;
+      return 0;
+    })
+    .map((q) => {
+      if (passedQuizzes.some((p) => p.quizId === q.id)) {
+        let passed = passedQuizzes.find((p) => p.quizId === q.id).passed;
+        return {
+          ...q,
+          passed: passed,
+        };
+      }
+      return q;
+    });
 
   const loadQuizzes = useCallback(async () => {
     setError(null);
@@ -81,16 +98,28 @@ export default HomeScreen = (props) => {
 
   const takeQuizHandler = (quiz) => {
     setQuiz(quiz);
+    setRequestedState(QUIZ_STATUS.INIT);
+  };
+  const reviewQuizHandler = (quiz) => {
+    quiz = passedQuizzes.find((p) => p.quizId === quiz.id);
+    setQuiz(quiz);
+    setRequestedState(QUIZ_STATUS.FINISHED);
   };
   const goBackFromQuizDetailsHandler = () => {
     setQuiz(null);
   };
 
-  let content = <QuizList quizzes={quizzes} onTakeQuiz={takeQuizHandler} />;
+  let content = (
+    <QuizList
+      quizzes={quizzes}
+      onTakeQuiz={takeQuizHandler}
+      onViewResults={reviewQuizHandler}
+    />
+  );
   if (quiz) {
     content = (
       <Quiz
-        requestedState={QUIZ_STATUS.INIT}
+        requestedState={requestedState}
         quiz={quiz}
         onGoBack={goBackFromQuizDetailsHandler}
       />

@@ -16,6 +16,7 @@ const QuizList = (props) => {
             showTimeLimit={true}
             isTaken={(item.passed ?? null) === null ? false : true}
             onTakeQuiz={props.onTakeQuiz}
+            onViewResults={props.onViewResults}
           />
         )}
       />
