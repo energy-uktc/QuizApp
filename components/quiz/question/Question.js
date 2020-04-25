@@ -6,7 +6,6 @@ import * as componentUtils from "../../utils";
 const Question = (props) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const currQuestion = props.question;
-  //console.log(currQuestion);
   const userAnswer = currQuestion.userAnswer;
   const QuestionBodyComponent = componentUtils.getQuestionComponentByQuestionType(
     currQuestion.type
@@ -14,7 +13,6 @@ const Question = (props) => {
 
   useEffect(() => {
     setSelectedAnswer(userAnswer);
-    console.log("effect");
   }, [props, userAnswer]);
 
   const selectAnswer = (ans) => {

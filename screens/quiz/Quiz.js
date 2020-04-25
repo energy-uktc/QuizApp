@@ -15,6 +15,7 @@ import colors from "../../constants/colors";
 import Question from "../../components/quiz/question/Question";
 import QuizResult from "./QuizResult";
 import LoadingControl from "../../components/UI/LoadingControl";
+import Timer from "../../components/UI/Timer";
 import {
   QUIZ_STATUS,
   fetchQuestions,
@@ -28,6 +29,7 @@ const Quiz = (props) => {
   const [position, setPosition] = useState(0);
   const [quizStatus, setQuizStatus] = useState(QUIZ_STATUS.NONE);
   const [currQuestion, setCurrQuestion] = useState(null);
+  const [startingTime, setStartingTime] = useState(Date.now());
 
   const loadQuestions = useCallback(async () => {
     try {
@@ -86,6 +88,7 @@ const Quiz = (props) => {
     setPosition(0);
     setCurrQuestion(quizQuestions[0] ?? null);
     setQuizStatus(QUIZ_STATUS.STARTED);
+    setStartingTime(Date.now());
   };
 
   const onNextQuestionHandler = (answer) => {
@@ -121,7 +124,13 @@ const Quiz = (props) => {
       })
       .catch((err) => {
         Alert.alert("Something went wrong", err.message, [
-          { text: "OK", onPress: () => setQuizStatus(QUIZ_STATUS.STARTED) },
+          {
+            text: "OK",
+            onPress: () => {
+              setQuizStatus(QUIZ_STATUS.INIT);
+              props.onGoBack();
+            },
+          },
         ]);
       });
   };
@@ -135,6 +144,34 @@ const Quiz = (props) => {
     setPosition(0);
     setCurrQuestion(quizQuestions[0] ?? null);
     setQuizStatus(QUIZ_STATUS.REVIEW);
+  };
+
+  const timeoutHandler = () => {
+    const updatedQuestions = quizQuestions;
+    setQuizStatus(QUIZ_STATUS.NONE);
+    insertQuizResults(props.quiz, updatedQuestions)
+      .then((newQuizResult) => {
+        Alert.alert("Time is up ", "Time is up.Your result has been saved.", [
+          {
+            text: "OK",
+            onPress: () => {
+              dispatch(addResults(newQuizResult));
+              setQuizStatus(QUIZ_STATUS.FINISHED);
+            },
+          },
+        ]);
+      })
+      .catch((err) => {
+        Alert.alert("Something went wrong", `${err.message}`, [
+          {
+            text: "OK",
+            onPress: () => {
+              setQuizStatus(QUIZ_STATUS.INIT);
+              props.onGoBack();
+            },
+          },
+        ]);
+      });
   };
 
   const onQuestionExitHandler = () => {
@@ -206,6 +243,15 @@ const Quiz = (props) => {
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{`${props.quiz.title}`}</Text>
           </View>
+          {quizStatus === QUIZ_STATUS.STARTED && props.quiz.timeLimit ? (
+            <Timer
+              timeInSeconds={
+                props.quiz.timeLimit.min * 60 + props.quiz.timeLimit.sec
+              }
+              startingTime={startingTime}
+              onTimeout={timeoutHandler}
+            />
+          ) : null}
           {content}
         </View>
       </ScrollView>

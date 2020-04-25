@@ -1,13 +1,6 @@
 import React from "react";
 
-import {
-  View,
-  Text,
-  FlatList,
-  RefreshControl,
-  Button,
-  StyleSheet,
-} from "react-native";
+import { View, FlatList, StyleSheet } from "react-native";
 
 import QuizItem from "../../components/quiz/QuizItem";
 
