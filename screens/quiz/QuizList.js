@@ -3,6 +3,7 @@ import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 
 import QuizItem from "../../components/quiz/QuizItem";
+import FloatingPlusButton from "../../components/UI/FloatingPlusButton";
 
 const QuizList = (props) => {
   return (
@@ -20,6 +21,7 @@ const QuizList = (props) => {
           />
         )}
       />
+      <FloatingPlusButton onPress={props.onCreateQuiz} />
     </View>
   );
 };

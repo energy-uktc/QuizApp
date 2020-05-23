@@ -9,10 +9,19 @@ import { getQuizExample } from "../../data/dummyData";
 import colors from "../../constants/colors";
 import LoadingControl from "../../components/UI/LoadingControl";
 import { QUIZ_STATUS } from "../../service/quizService";
+import QuizWizard from "./wizard/QuizWizard";
+
+export const STATE = {
+  NONE: "NONE",
+  TAKE_QUIZ: "TAKE_QUIZ",
+  REVIEW_QUIZ: "REVIEW_QUIZ",
+  CREATE_QUIZ: "CREATE_QUIZ",
+};
 
 export default HomeScreen = (props) => {
   const [quiz, setQuiz] = useState(null);
-  const [requestedState, setRequestedState] = useState(QUIZ_STATUS.INIT);
+  const [screenState, setScreenState] = useState(STATE.NONE);
+
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
@@ -98,32 +107,55 @@ export default HomeScreen = (props) => {
 
   const takeQuizHandler = (quiz) => {
     setQuiz(quiz);
-    setRequestedState(QUIZ_STATUS.INIT);
+    setScreenState(STATE.TAKE_QUIZ);
+  };
+  const createQuizHandler = () => {
+    console.log("createQuizHandler");
+    setScreenState(STATE.CREATE_QUIZ);
   };
   const reviewQuizHandler = (quiz) => {
     quiz = passedQuizzes.find((p) => p.quizId === quiz.id);
+    setScreenState(STATE.REVIEW_QUIZ);
     setQuiz(quiz);
-    setRequestedState(QUIZ_STATUS.FINISHED);
   };
-  const goBackFromQuizDetailsHandler = () => {
+  const returnToMainScreen = () => {
+    setScreenState(STATE.NONE);
     setQuiz(null);
   };
 
-  let content = (
-    <QuizList
-      quizzes={quizzes}
-      onTakeQuiz={takeQuizHandler}
-      onViewResults={reviewQuizHandler}
-    />
-  );
-  if (quiz) {
-    content = (
-      <Quiz
-        requestedState={requestedState}
-        quiz={quiz}
-        onGoBack={goBackFromQuizDetailsHandler}
-      />
-    );
+  let content = null;
+  switch (screenState) {
+    case STATE.NONE:
+      content = (
+        <QuizList
+          quizzes={quizzes}
+          onTakeQuiz={takeQuizHandler}
+          onViewResults={reviewQuizHandler}
+          onCreateQuiz={createQuizHandler}
+        />
+      );
+      break;
+    case STATE.TAKE_QUIZ:
+      content = (
+        <Quiz
+          requestedState={QUIZ_STATUS.INIT}
+          quiz={quiz}
+          onGoBack={returnToMainScreen}
+        />
+      );
+      break;
+    case STATE.REVIEW_QUIZ:
+      content = (
+        <Quiz
+          requestedState={QUIZ_STATUS.FINISHED}
+          quiz={quiz}
+          onGoBack={returnToMainScreen}
+        />
+      );
+      break;
+    case STATE.CREATE_QUIZ:
+      content = <QuizWizard onGoBack={returnToMainScreen} />;
+      break;
   }
   return <View style={styles.container}>{content}</View>;
 };
