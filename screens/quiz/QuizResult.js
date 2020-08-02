@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,17 @@ import {
   Image,
   Button,
   Dimensions,
+  Alert,
 } from "react-native";
 import colors from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import * as quizService from "../../service/quizService";
+import * as printService from "../../service/printingService";
+import FloatingPlusButton from "../../components/UI/FloatingPlusButton";
 
 const QuizResult = (props) => {
   const dim = Dimensions.get("window");
+  const [showPrint, setShowPrint] = useState(true);
   let totalPoints = quizService.calculateQuizTotalPoints(props.userQuestions);
   let userPoints = quizService.calculateQuizEarnedPoints(props.userQuestions);
 
@@ -21,13 +25,27 @@ const QuizResult = (props) => {
     score = Math.round((userPoints / totalPoints) * 10000, 2) / 100;
   }
   const passed = quizService.isPassed(props.quiz, props.userQuestions);
-
+  const printQuizHandler = () => {
+    setShowPrint(false);
+    printService
+      .printSingleQuizResult(props.quiz)
+      .then(() => {
+        setShowPrint(true);
+      })
+      .catch((err) => {
+        setShowPrint(true);
+        console.log(err);
+        //  Alert.alert("Error Printing", err);
+      });
+  };
   const message = passed
     ? "Congratulations! You passed the test!"
     : "Sorry ! You didn't pass the test!";
   const iconName = passed
     ? "md-checkmark-circle-outline"
     : "md-close-circle-outline";
+
+  console.log(props.quiz);
   return (
     <View style={styles.screen}>
       <View style={{ alignItems: "center" }}>
@@ -50,6 +68,14 @@ const QuizResult = (props) => {
           color={passed ? colors.greenish : colors.primary}
           size={50}
         />
+        {showPrint && (
+          <FloatingPlusButton
+            onPress={printQuizHandler}
+            iconName="ios-print"
+            color={colors.activeColor}
+            static
+          />
+        )}
       </View>
       <View>
         <Text style={styles.text}>Total Points: {totalPoints}</Text>

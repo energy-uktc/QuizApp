@@ -31,7 +31,9 @@ const OpenQuestion = (props) => {
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="Enter your answer"
+        placeholder={
+          props.createMode ? "Enter correct answer" : "Enter your answer"
+        }
         style={{
           ...styles.textInput,
           backgroundColor: props.reviewMode ? "#ccc" : "white",

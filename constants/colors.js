@@ -5,4 +5,5 @@ export default {
   inactiveColor: "#e0f0c0",
   activeColor: "#3e2465",
   greenish: "green",
+  greyish: "#ccc",
 };

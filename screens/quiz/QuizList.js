@@ -21,7 +21,7 @@ const QuizList = (props) => {
           />
         )}
       />
-      <FloatingPlusButton onPress={props.onCreateQuiz} />
+      <FloatingPlusButton onPress={props.onCreateQuiz} iconName="ios-add" />
     </View>
   );
 };

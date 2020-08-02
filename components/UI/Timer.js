@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 
 const formatNumber = (number) => `0${number}`.slice(-2);
 const getRemaining = (time) => {
+  console.log(time);
   const mins = Math.floor(time / 60);
   const secs = time - mins * 60;
   return { mins: formatNumber(mins), secs: formatNumber(secs) };
@@ -24,7 +25,6 @@ const Timer = (props) => {
       }
     }, 1000);
     return () => {
-      console.log("dispose timer");
       clearInterval(interval);
     };
   }, [remainingSecs]);

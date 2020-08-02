@@ -128,7 +128,9 @@ export const insertQuiz = async (quiz) => {
     },
     body: JSON.stringify({
       title: quiz.title,
-      imageUrl: quiz.imageUrl,
+      imageUrl: quiz.imageUrl
+        ? quiz.imageUrl
+        : "https://cdn.pixabay.com/photo/2017/05/13/09/04/question-2309040_1280.jpg",
       description: quiz.description,
       timeLimit: quiz.timeLimit,
       date: quiz.date,

@@ -15,6 +15,8 @@ const SingleChoiceQuestion = (props) => {
   const currQuestion = props.question;
   const Touchable =
     Platform.OS === "android" ? TouchableNativeFeedback : TouchableOpacity;
+  if (!currQuestion) return null;
+
   return (
     <View style={styles.answers}>
       {Object.keys(currQuestion.possibleAnswers).map((val) => {
@@ -38,6 +40,11 @@ const SingleChoiceQuestion = (props) => {
             useForeground={true}
             onPress={() => {
               props.onSelectAnswer(val);
+            }}
+            onLongPress={() => {
+              if (props.onLongPress) {
+                props.onLongPress(val);
+              }
             }}
           >
             <View style={styles.answerCard}>
@@ -63,7 +70,7 @@ const SingleChoiceQuestion = (props) => {
 
 const styles = StyleSheet.create({
   answers: {
-    flex: 1,
+    //flex: 1,
     alignItems: "stretch",
     width: "100%",
     paddingVertical: 30,

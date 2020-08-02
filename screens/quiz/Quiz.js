@@ -182,6 +182,8 @@ const Quiz = (props) => {
     endQuizHandler();
   };
 
+  console.log(`TIME MESSAGE: ${timeMessage}`);
+  console.log(!!timeMessage);
   let content = (
     <View style={styles.container}>
       <Image
@@ -194,7 +196,7 @@ const Quiz = (props) => {
       />
       <View style={styles.infoContainer}>
         <Text style={styles.info}>{`${props.quiz.description}`}</Text>
-        {timeMessage && (
+        {!!timeMessage && (
           <Text
             style={styles.info}
           >{`You will have ${timeMessage} to pass it. You can not leave the test once started.`}</Text>

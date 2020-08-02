@@ -123,6 +123,12 @@ export default HomeScreen = (props) => {
     setQuiz(null);
   };
 
+  const handleSubmitQuiz = async (quiz, questions) => {
+    const newQuiz = await quizService.insertFullQuiz(quiz, questions);
+    dispatch(quizActions.addQuiz(newQuiz));
+    setScreenState(STATE.NONE);
+    setQuiz(null);
+  };
   let content = null;
   switch (screenState) {
     case STATE.NONE:
@@ -154,7 +160,12 @@ export default HomeScreen = (props) => {
       );
       break;
     case STATE.CREATE_QUIZ:
-      content = <QuizWizard onGoBack={returnToMainScreen} />;
+      content = (
+        <QuizWizard
+          onGoBack={returnToMainScreen}
+          onSubmitQuiz={handleSubmitQuiz}
+        />
+      );
       break;
   }
   return <View style={styles.container}>{content}</View>;

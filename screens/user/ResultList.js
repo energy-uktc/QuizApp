@@ -1,10 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 
-import { View, FlatList, StyleSheet } from "react-native";
+import { View, FlatList, StyleSheet, Alert } from "react-native";
 
 import QuizItem from "../../components/quiz/QuizItem";
+import FloatingPlusButton from "../../components/UI/FloatingPlusButton";
+import colors from "../../constants/colors";
+import * as printService from "../../service/printingService";
 
 const ResultList = (props) => {
+  const [showPrint, setShowPrint] = useState(true);
+  const printQuizHandler = () => {
+    setShowPrint(false);
+    printService
+      .printUserScores(props.passedQuizzes)
+      .then(() => {
+        setShowPrint(true);
+      })
+      .catch((err) => {
+        setShowPrint(true);
+        Alert.alert("Error Printing", err);
+      });
+  };
   return (
     <View style={styles.list}>
       <FlatList
@@ -19,6 +35,13 @@ const ResultList = (props) => {
           />
         )}
       />
+      {showPrint && (
+        <FloatingPlusButton
+          onPress={printQuizHandler}
+          iconName="ios-print"
+          color={colors.accent}
+        />
+      )}
     </View>
   );
 };
