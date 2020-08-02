@@ -1,5 +1,3 @@
-import { AsyncStorage } from "react-native";
-import USER_DATA from "../../constants/userData";
 import * as authService from "../../service/authService";
 
 export const AUTHENTICATE = authService.AUTHENTICATE;
@@ -21,7 +19,7 @@ export const logout = () => {
 
 export const signup = (email, password) => {
   return async (dispatch) => {
-    const userId = await authService.signUpService(email, password);
+    const userId = await authService.signUp(email, password);
     dispatch(storeAuthentication(userId));
   };
 };
