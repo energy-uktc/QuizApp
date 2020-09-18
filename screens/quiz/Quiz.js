@@ -223,10 +223,12 @@ const Quiz = (props) => {
     );
   }
   if (quizStatus == QUIZ_STATUS.FINISHED) {
+    console.log(props.quiz.quizId ?? props.quiz.id);
+    console.log(props.quiz.quizId);
+    console.log(props.quiz.id);
     content = (
       <QuizResult
-        userQuestions={quizQuestions}
-        quiz={props.quiz}
+        id={props.quiz.quizId ?? props.quiz.id}
         onExit={endQuizHandler}
         onReview={reviewQuestionsHandler}
       />

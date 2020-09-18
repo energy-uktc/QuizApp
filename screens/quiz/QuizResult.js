@@ -8,6 +8,7 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
+import { useSelector } from "react-redux";
 import colors from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import * as quizService from "../../service/quizService";
@@ -16,19 +17,23 @@ import FloatingPlusButton from "../../components/UI/FloatingPlusButton";
 
 const QuizResult = (props) => {
   const dim = Dimensions.get("window");
+  const quiz = useSelector((state) =>
+    state.quiz.passedQuizzes.find((q) => q.quizId === props.id)
+  );
+  console.log(quiz);
   const [showPrint, setShowPrint] = useState(true);
-  let totalPoints = quizService.calculateQuizTotalPoints(props.userQuestions);
-  let userPoints = quizService.calculateQuizEarnedPoints(props.userQuestions);
+  let totalPoints = quizService.calculateQuizTotalPoints(quiz.questions);
+  let userPoints = quizService.calculateQuizEarnedPoints(quiz.questions);
 
   let score = 100;
   if (totalPoints) {
     score = Math.round((userPoints / totalPoints) * 10000, 2) / 100;
   }
-  const passed = quizService.isPassed(props.quiz, props.userQuestions);
+  const passed = quizService.isPassed(quiz, quiz.questions);
   const printQuizHandler = () => {
     setShowPrint(false);
     printService
-      .printSingleQuizResult(props.quiz)
+      .printSingleQuizResult(quiz)
       .then(() => {
         setShowPrint(true);
       })
@@ -45,14 +50,14 @@ const QuizResult = (props) => {
     ? "md-checkmark-circle-outline"
     : "md-close-circle-outline";
 
-  console.log(props.quiz);
+  console.log(quiz);
   return (
     <View style={styles.screen}>
       <View style={{ alignItems: "center" }}>
         <Image
           style={styles.image}
           source={{
-            uri: props.quiz.imageUrl,
+            uri: quiz.imageUrl,
             height: dim.width / 2,
             width: dim.height / 2,
           }}
@@ -81,13 +86,11 @@ const QuizResult = (props) => {
         <Text style={styles.text}>Total Points: {totalPoints}</Text>
         <Text style={styles.text}>Your Points: {userPoints}</Text>
         <Text style={styles.text}>Score: {score}%</Text>
-        <Text style={styles.text}>
-          Target Score: {props.quiz.minimumPointsPrc}%
-        </Text>
+        <Text style={styles.text}>Target Score: {quiz.minimumPointsPrc}%</Text>
       </View>
       <View style={styles.buttonsContainer}>
         <View style={styles.button}>
-          {props.userQuestions.length > 0 && (
+          {quiz.questions.length > 0 && (
             <Button
               title="Review Answers"
               color={colors.activeColor}
