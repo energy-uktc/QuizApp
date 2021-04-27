@@ -183,8 +183,12 @@ export const insertQuestion = async (question) => {
 };
 
 export const fetchQuestions = async (quizId) => {
+  if (!(await authService.refreshTokenIfExpired())) {
+    return false;
+  }
+  const tokenId = await authService.getTokenId();
   const response = await fetch(
-    `${URL}/question.json?orderBy="quizId"&equalTo="${quizId}"`
+    `${URL}/question.json?auth=${tokenId}&orderBy="quizId"&equalTo="${quizId}"`
   );
   if (!response.ok) {
     console.log(`GET_QUESTIONS: Error response: ${JSON.stringify(response)}`);
@@ -201,7 +205,11 @@ export const fetchQuestions = async (quizId) => {
 };
 
 export const fetchQuizzes = async () => {
-  const response = await fetch(`${URL}/quiz.json`);
+  if (!(await authService.refreshTokenIfExpired())) {
+    return false;
+  }
+  const tokenId = await authService.getTokenId();
+  const response = await fetch(`${URL}/quiz.json?auth=${tokenId}`);
   if (!response.ok) {
     console.log(`GET_QUIZZES: Error response: ${JSON.stringify(response)}`);
     throw new Error(
@@ -277,8 +285,12 @@ export const insertQuizResults = async (quiz, questions) => {
 };
 
 export const fetchUserQuizzes = async () => {
+  if (!(await authService.refreshTokenIfExpired())) {
+    return false;
+  }
+  const tokenId = await authService.getTokenId();
   const userId = authService.getUserId();
-  const response = await fetch(`${URL}/quizResults/${userId}.json`);
+  const response = await fetch(`${URL}/quizResults/${userId}.json?auth=${tokenId}`);
   if (!response.ok) {
     console.log(
       `GET_USER_QUIZZES: Error response: ${JSON.stringify(response)}`
